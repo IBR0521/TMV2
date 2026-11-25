@@ -1,0 +1,295 @@
+/*
+ * Three candidate worlds for the office app, scoped to the /design previews.
+ *
+ * Each block redefines the same custom properties the Tailwind utilities
+ * already read, so the markup can use ordinary utilities and still change
+ * world. Nothing here leaks into the app: only app/design imports this file,
+ * and those routes are not served in production.
+ *
+ * The winner gets rewritten into design/tokens.json and generated into
+ * src/ui/tokens.css like everything else.
+ */
+
+/* ------------------------------------------------------------------ */
+/* A — Console. A control room: monochrome instrument, colour only     */
+/* where something is true about a truck or an invoice.                */
+/* ------------------------------------------------------------------ */
+[data-world='console'] {
+  --color-bg: #08090b;
+  --color-surface: #0d0f12;
+  --color-surface-raised: #14181c;
+  --color-selected: #171c21;
+  --color-border: #1a1f25;
+  --color-border-input: #242b33;
+  --color-border-control: #2f3942;
+  --color-text: #e9eef2;
+  --color-text-secondary: #99a5b0;
+  --color-text-muted: #6d7985;
+  --color-primary: #f0f4f7;
+  --color-on-primary: #0a0c0e;
+  --color-link: #cfd8df;
+
+  --accent: #f0f4f7;
+  --ok: #3ddc97;
+  --late: #ffb224;
+  --bad: #ff6b5a;
+  --idle: #5a6670;
+
+  --radius-sm: 3px;
+  --radius-md: 4px;
+  --radius-lg: 4px;
+  --radius-chip: 3px;
+
+  --rule: 1px solid var(--color-border);
+  --micro: 10px;
+}
+
+/* ------------------------------------------------------------------ */
+/* B — Queue. One decision at a time, warm and calm, built to be       */
+/* worked through rather than watched.                                 */
+/* ------------------------------------------------------------------ */
+[data-world='queue'] {
+  --color-bg: #0b0a0d;
+  --color-surface: #121116;
+  --color-surface-raised: #1a181e;
+  --color-selected: #221f28;
+  --color-border: #221e28;
+  --color-border-input: #2c2733;
+  --color-border-control: #39323f;
+  --color-text: #f5f2f6;
+  --color-text-secondary: #aea5b4;
+  --color-text-muted: #837989;
+  --color-primary: #47d7a4;
+  --color-on-primary: #06231a;
+  --color-link: #8ee9c6;
+
+  --accent: #47d7a4;
+  --ok: #47d7a4;
+  --late: #e8a33d;
+  --bad: #f0787a;
+  --idle: #6b6274;
+
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-chip: 999px;
+
+  --lift: 0 18px 40px -24px rgb(0 0 0 / 0.9), 0 2px 8px -4px rgb(0 0 0 / 0.6);
+}
+
+/* ------------------------------------------------------------------ */
+/* C — Board. The day is the home screen; state is carried by colour.  */
+/* ------------------------------------------------------------------ */
+[data-world='board'] {
+  --color-bg: #080d12;
+  --color-surface: #0e1620;
+  --color-surface-raised: #142030;
+  --color-selected: #16293d;
+  --color-border: #1a2836;
+  --color-border-input: #22364a;
+  --color-border-control: #2d455c;
+  --color-text: #e9f2fa;
+  --color-text-secondary: #9bb1c6;
+  --color-text-muted: #6d8499;
+  --color-primary: #2e8fe0;
+  --color-on-primary: #04111d;
+  --color-link: #66b6f2;
+
+  --accent: #2e8fe0;
+  --ok: #2e8fe0;
+  --late: #f2a33c;
+  --bad: #ef6a6a;
+  --idle: #41596e;
+  --loadingc: #8c7bf0;
+  --suggest: #35c7b0;
+
+  --radius-sm: 5px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-chip: 4px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Shared preview chrome                                               */
+/* ------------------------------------------------------------------ */
+.world {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+}
+
+/* The browser's own surfaces belong to the design too. */
+.world ::selection {
+  background: color-mix(in oklab, var(--accent) 35%, transparent);
+  color: var(--color-text);
+}
+.world :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.world * {
+  scrollbar-color: var(--color-border-control) transparent;
+  scrollbar-width: thin;
+}
+.world .nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+.micro {
+  font-size: 10px;
+  line-height: 14px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+[data-world='console'] {
+  font-family: var(--font-plex-sans), system-ui, sans-serif;
+}
+[data-world='console'] .nums,
+[data-world='console'] .mono {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+}
+[data-world='queue'] {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+[data-world='queue'] .nums,
+[data-world='queue'] .mono {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+}
+[data-world='board'] {
+  font-family: var(--font-barlow), system-ui, sans-serif;
+}
+[data-world='board'] .nums,
+[data-world='board'] .mono {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+/* ------------------------------------------------------------------ */
+/* D — Night haul.                                                     */
+/*                                                                     */
+/* Dark that works the way dark actually works: depth comes from each  */
+/* surface being a little lighter than the one beneath it, hairlines   */
+/* are white at low opacity rather than drawn-on grey, text runs in    */
+/* four strict tones, and weight stops at 500. One saturated colour,   */
+/* sodium amber, carries the one thing that needs a person; green and  */
+/* red are state and nothing else. The trade shows in the figures, the */
+/* unit plates and the mark, not in a costume typeface.                */
+/* ------------------------------------------------------------------ */
+[data-world='night'] {
+  color-scheme: dark;
+
+  /* Base is never pure black: things need somewhere to recede to. */
+  --base: #08090a;
+  --panel: #0e0f11;
+  --elevated: #141517;
+  --overlay: #1a1c1f;
+
+  --color-bg: var(--base);
+  --color-surface: var(--panel);
+  --color-surface-raised: var(--elevated);
+  --color-selected: var(--overlay);
+
+  /* Hairlines are light catching an edge, not a drawn grey line. */
+  --hair: rgb(255 255 255 / 0.07);
+  --hair-strong: rgb(255 255 255 / 0.13);
+  --color-border: rgb(255 255 255 / 0.07);
+  --color-border-input: rgb(255 255 255 / 0.11);
+  --color-border-control: rgb(255 255 255 / 0.16);
+
+  /* Four tones, used strictly. */
+  --t1: rgb(255 255 255 / 0.92);
+  --t2: rgb(255 255 255 / 0.62);
+  --t3: rgb(255 255 255 / 0.44);
+  --t4: rgb(255 255 255 / 0.28);
+  --color-text: var(--t1);
+  --color-text-secondary: var(--t2);
+  --color-text-muted: var(--t3);
+
+  /* One saturated accent. Everything else is desaturated. */
+  --amber: #ffb224;
+  --amber-ink: #1a1000;
+  --color-primary: var(--amber);
+  --color-on-primary: var(--amber-ink);
+  --color-link: #ffc96b;
+
+  /* State, and only state. */
+  --guide: #35c26a;
+  --signal: #ff5a5a;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-chip: 5px;
+
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.006em;
+}
+
+[data-world='night'] .nums,
+[data-world='night'] .mono {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Section labels. Small, quiet, and the only place caps appear. */
+[data-world='night'] .eyebrow {
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--t3);
+}
+
+/* A panel is lighter than the page and edged with light, not outlined. */
+[data-world='night'] .panel {
+  background: var(--panel);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-lg);
+}
+
+/* Rows carry no dividers. The hover surface is the separation. */
+[data-world='night'] .row {
+  border-radius: var(--radius-md);
+  transition: background-color 140ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-world='night'] .row:hover {
+  background: var(--elevated);
+}
+
+/* The unit number as it is painted on the door. */
+[data-world='night'] .unit {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  background: var(--elevated);
+  border: 1px solid var(--hair);
+  border-radius: 5px;
+}
+
+[data-world='night'] ::selection {
+  background: rgb(255 178 36 / 0.28);
+  color: var(--t1);
+}
+[data-world='night'] :focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+[data-world='night'] * {
+  scrollbar-color: rgb(255 255 255 / 0.14) transparent;
+  scrollbar-width: thin;
+}
+
+/* One authored moment: the live run breathes. */
+@keyframes night-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+[data-world='night'] .live-dot {
+  animation: night-pulse 2.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-world='night'] .live-dot { animation: none; }
+}

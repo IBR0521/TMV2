@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Local Supabase defaults; no secret is needed to run the test suite.
+  NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+  DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+  NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
+
+jobs:
+  static:
+    name: Typecheck, lint, unit and action tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Generate design tokens
+        run: pnpm tokens
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Lint
+        run: pnpm lint
+      - name: Domain and action tests
+        run: pnpm test
+
+  integration:
+    name: Migrations, RLS and end to end
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Generate design tokens
+        run: pnpm tokens
+      - name: Start Supabase (Postgres with PostGIS, Auth, Storage)
+        run: pnpm db:start
+      - name: Apply every migration to an empty database
+        run: pnpm db:reset
+      - name: Write .env.local from the local Supabase stack
+        run: pnpm db:env
+      - name: Seed demo companies
+        run: pnpm db:seed
+      - name: RLS tests (two companies, every tenant table)
+        run: pnpm test:rls
+      - name: Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+      - name: End-to-end tests
+        run: pnpm e2e
+      - uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

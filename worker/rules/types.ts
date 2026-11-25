@@ -1,0 +1,40 @@
+import type { Json } from '../../src/server/db/database.types';
+
+/**
+ * A rule is a small pure function: event in, actions out (CLAUDE.md, rule 4).
+ * It never touches the database, so it can be tested with a plain object.
+ */
+export type WorkerEvent = {
+  id: string;
+  companyId: string;
+  type: string;
+  subjectType: string;
+  subjectId: string | null;
+  payload: Record<string, unknown>;
+  occurredAt: string;
+};
+
+/**
+ * What a rule asks for. Phase 1 only needs a card on Today; the "auto" variant
+ * joins this union in phase 3, when there are real actions to take.
+ */
+export type RuleAction = {
+  kind: 'suggest';
+  /** Suggestion type, usually the event type. */
+  type: string;
+  title: string;
+  detail?: string;
+  /** One open card per thing: the same key updates the card in place. */
+  dedupeKey: string;
+  subjectType?: string;
+  subjectId?: string | null;
+  /** The service the Accept button runs, with these parameters. */
+  actionName?: string;
+  actionParams?: Json;
+};
+
+export type Rule = {
+  /** Matches a key in src/domain/automation.ts. */
+  key: string;
+  handle: (event: WorkerEvent) => RuleAction[];
+};

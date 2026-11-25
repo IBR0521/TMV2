@@ -1,0 +1,40 @@
+@import 'tailwindcss';
+@import '../src/ui/tokens.css';
+
+/* design/tokens.json names the typeface; next/font serves the files and gives
+   them generated family names, so the two are bound together here. */
+@layer base {
+  :root {
+    --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+    --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+    color-scheme: dark;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Money lines up: Geist Mono with tabular figures. */
+  .money {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-link);
+    outline-offset: 2px;
+  }
+
+  ::placeholder {
+    color: var(--color-text-muted);
+  }
+}

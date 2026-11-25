@@ -1,0 +1,62 @@
+{
+  "name": "truckmates",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@12.23.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "tokens": "tsx scripts/build-tokens.ts",
+    "dev": "pnpm tokens && next dev",
+    "build": "pnpm tokens && next build",
+    "start": "next start",
+    "worker": "tsx worker/index.ts",
+    "typecheck": "pnpm tokens && tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "test": "vitest run --project domain --project actions",
+    "test:domain": "vitest run --project domain",
+    "test:actions": "vitest run --project actions",
+    "test:rls": "vitest run --project rls",
+    "e2e": "playwright test",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset && pnpm worker:migrate",
+    "db:types": "supabase gen types typescript --local --schema public > src/server/db/database.types.ts",
+    "db:seed": "tsx scripts/seed.ts",
+    "db:env": "tsx scripts/write-env-local.ts",
+    "worker:migrate": "tsx scripts/worker-migrate.ts"
+  },
+  "dependencies": {
+    "@sentry/nextjs": "11.17.0",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.119.2",
+    "geist": "1.9.2",
+    "graphile-worker": "0.18.0",
+    "lucide-react": "1.79.0",
+    "next": "16.4.6",
+    "pg": "8.23.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.65.1",
+    "@tailwindcss/postcss": "4.3.5",
+    "@types/node": "26.6.6",
+    "@types/pg": "8.23.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "dotenv": "18.0.10",
+    "eslint": "10.15.0",
+    "eslint-config-next": "16.4.6",
+    "supabase": "3.3.0",
+    "tailwindcss": "4.3.5",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.74.0",
+    "vite": "8.3.8",
+    "vitest": "5.1.1"
+  }
+}

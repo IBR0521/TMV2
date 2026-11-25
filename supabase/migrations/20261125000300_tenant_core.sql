@@ -1,0 +1,161 @@
+-- Phase 1 — the tenant core: a carrier, the people in it and its plan.
+--
+-- docs/spec/spec.md, Data model: companies, users, memberships, invitations,
+-- subscriptions. RLS is applied in the next migration, once the auth helpers
+-- the policies call exist.
+
+create type public.user_role as enum ('owner', 'dispatcher', 'accounting', 'driver');
+create type public.membership_status as enum ('active', 'invited', 'disabled');
+create type public.invitation_status as enum ('pending', 'accepted', 'revoked');
+create type public.subscription_status as enum ('trialing', 'active', 'past_due', 'cancelled');
+
+-- ---------------------------------------------------------------------------
+-- companies
+-- ---------------------------------------------------------------------------
+-- company_id is generated from id so that companies obeys the same rule as
+-- every other tenant table: one uniform policy, and the RLS test sweep picks
+-- it up automatically instead of needing a special case.
+create table public.companies (
+  id uuid primary key default gen_random_uuid(),
+  company_id uuid not null generated always as (id) stored,
+  name text not null check (length(btrim(name)) > 0),
+  mc_number text,
+  dot_number text,
+  timezone text not null default 'America/Chicago',
+  archived_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (company_id, id)
+);
+
+create index companies_company_id_idx on public.companies (company_id);
+create index companies_dot_number_idx on public.companies (dot_number) where dot_number is not null;
+
+create trigger companies_touch_updated_at
+  before update on public.companies
+  for each row execute function public.tm_tg_touch_updated_at();
+
+comment on table public.companies is 'A carrier. Archived, never deleted.';
+comment on column public.companies.company_id is
+  'Always equals id. Lets companies share the uniform tenant policy.';
+comment on column public.companies.timezone is
+  'IANA zone of the carrier office, e.g. America/Chicago.';
+
+-- ---------------------------------------------------------------------------
+-- users
+-- ---------------------------------------------------------------------------
+-- A person, not a tenant row: one profile per login, possibly a member of more
+-- than one company. It therefore has no company_id and gets its own policies.
+create table public.users (
+  id uuid primary key default gen_random_uuid(),
+  auth_id uuid not null unique references auth.users (id) on delete cascade,
+  email text not null,
+  name text not null default '',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index users_email_idx on public.users (lower(email));
+
+create trigger users_touch_updated_at
+  before update on public.users
+  for each row execute function public.tm_tg_touch_updated_at();
+
+comment on table public.users is
+  'Login profile, one per person. Not tenant-scoped: membership is what ties a '
+  'person to a company.';
+
+-- ---------------------------------------------------------------------------
+-- memberships
+-- ---------------------------------------------------------------------------
+create table public.memberships (
+  id uuid primary key default gen_random_uuid(),
+  company_id uuid not null references public.companies (id) on delete cascade,
+  user_id uuid not null references public.users (id) on delete cascade,
+  role public.user_role not null,
+  -- Set in phase 2, when drivers exist: links a driver login to its driver row.
+  driver_id uuid,
+  status public.membership_status not null default 'active',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (company_id, id),
+  unique (company_id, user_id)
+);
+
+create index memberships_company_id_idx on public.memberships (company_id);
+create index memberships_user_id_idx on public.memberships (user_id);
+create index memberships_driver_id_idx on public.memberships (company_id, driver_id)
+  where driver_id is not null;
+
+create trigger memberships_touch_updated_at
+  before update on public.memberships
+  for each row execute function public.tm_tg_touch_updated_at();
+
+comment on table public.memberships is
+  'A person''s role in one company. Disabled, never deleted.';
+comment on column public.memberships.driver_id is
+  'Phase 2 adds the composite foreign key to drivers (company_id, driver_id).';
+
+-- ---------------------------------------------------------------------------
+-- invitations
+-- ---------------------------------------------------------------------------
+create table public.invitations (
+  id uuid primary key default gen_random_uuid(),
+  company_id uuid not null references public.companies (id) on delete cascade,
+  email text not null check (position('@' in email) > 1),
+  role public.user_role not null,
+  -- Random, generated by the server; the whole link is the secret.
+  token text not null unique check (length(token) >= 32),
+  status public.invitation_status not null default 'pending',
+  invited_by uuid references public.users (id),
+  expires_at timestamptz not null,
+  accepted_at timestamptz,
+  accepted_by uuid references public.users (id),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (company_id, id)
+);
+
+create index invitations_company_id_idx on public.invitations (company_id);
+create unique index invitations_one_open_per_email_idx
+  on public.invitations (company_id, lower(email))
+  where status = 'pending';
+
+create trigger invitations_touch_updated_at
+  before update on public.invitations
+  for each row execute function public.tm_tg_touch_updated_at();
+
+comment on table public.invitations is
+  'Pending invites. Drivers get a copyable link (no SMS, CLAUDE.md rule 5).';
+
+-- ---------------------------------------------------------------------------
+-- subscriptions
+-- ---------------------------------------------------------------------------
+-- CLAUDE.md rule 6: the only source of plan, truck limit and AI quota.
+-- Read-only to the app; written at signup and (phase 8) by Paddle webhooks.
+create table public.subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  company_id uuid not null references public.companies (id) on delete cascade,
+  provider text not null default 'trial' check (provider in ('trial', 'paddle')),
+  plan text not null default 'starter',
+  status public.subscription_status not null default 'trialing',
+  truck_limit integer not null default 5 check (truck_limit > 0),
+  ai_quota integer not null default 150 check (ai_quota >= 0),
+  trial_ends_at timestamptz,
+  current_period_end timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (company_id, id),
+  unique (company_id)
+);
+
+create index subscriptions_company_id_idx on public.subscriptions (company_id);
+
+create trigger subscriptions_touch_updated_at
+  before update on public.subscriptions
+  for each row execute function public.tm_tg_touch_updated_at();
+
+comment on table public.subscriptions is
+  'One row per company. Paddle columns arrive in phase 8; phase 1 is the trial.';
+comment on column public.subscriptions.ai_quota is
+  'Document reads per month: about 30 per truck (5 trucks on the starter plan).';

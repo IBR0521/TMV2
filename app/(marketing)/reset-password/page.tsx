@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthCard, FormError } from '@/ui/auth-card';
 import { Button } from '@/ui/button';
+import { useHydrated } from '@/ui/use-hydrated';
 import { Field, TextInput } from '@/ui/field';
 import { browserDb } from '@/server/db/browser';
 
@@ -13,6 +14,7 @@ import { browserDb } from '@/server/db/browser';
  */
 export default function ResetPasswordPage() {
   const router = useRouter();
+  const ready = useHydrated();
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -36,7 +38,7 @@ export default function ResetPasswordPage() {
 
   return (
     <AuthCard title="Choose a new password">
-      <form onSubmit={save} className="space-y-4">
+      <form method="post" onSubmit={save} className="space-y-4">
         <FormError message={error} />
         <Field label="New password" hint="At least 8 characters.">
           <TextInput
@@ -49,7 +51,7 @@ export default function ResetPasswordPage() {
             onChange={(e) => setPassword(e.target.value)}
           />
         </Field>
-        <Button type="submit" variant="primary" disabled={busy} className="w-full">
+        <Button type="submit" variant="primary" disabled={busy || !ready} className="w-full">
           {busy ? 'Saving…' : 'Save password'}
         </Button>
       </form>

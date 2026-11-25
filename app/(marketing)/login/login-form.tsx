@@ -5,11 +5,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AuthCard, FormError } from '@/ui/auth-card';
 import { Button } from '@/ui/button';
+import { useHydrated } from '@/ui/use-hydrated';
 import { Field, TextInput } from '@/ui/field';
 import { browserDb } from '@/server/db/browser';
 
 export function LoginForm({ next }: { next: string }) {
   const router = useRouter();
+  const ready = useHydrated();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +45,7 @@ export function LoginForm({ next }: { next: string }) {
         </>
       }
     >
-      <form onSubmit={signIn} className="space-y-4">
+      <form method="post" onSubmit={signIn} className="space-y-4">
         <FormError message={error} />
         <Field label="Email">
           <TextInput
@@ -69,7 +71,7 @@ export function LoginForm({ next }: { next: string }) {
           <Link href="/forgot-password" className="text-label text-link hover:underline">
             Forgot your password?
           </Link>
-          <Button type="submit" variant="primary" disabled={busy}>
+          <Button type="submit" variant="primary" disabled={busy || !ready}>
             {busy ? 'Signing in…' : 'Sign in'}
           </Button>
         </div>

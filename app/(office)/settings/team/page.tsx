@@ -1,5 +1,5 @@
 import { PageHeader } from '@/ui/page-header';
-import { Panel, PanelHeader, PanelRow } from '@/ui/panel';
+import { Panel, PanelBody, PanelHeader, PanelRow } from '@/ui/panel';
 import { EmptyState } from '@/ui/empty-state';
 import { roleLabel } from '@/domain/roles';
 import { requireRole } from '@/server/guard';
@@ -23,8 +23,14 @@ export default async function TeamPage() {
       <PageHeader
         title="Users and roles"
         subline={`${members.length} ${members.length === 1 ? 'person' : 'people'}`}
-        action={<InviteForm />}
       />
+
+      <Panel>
+        <PanelHeader title="Invite someone" />
+        <PanelBody>
+          <InviteForm />
+        </PanelBody>
+      </Panel>
 
       <Panel>
         <PanelHeader title="People" count={members.length} />

@@ -41,19 +41,26 @@ const COMPANIES: DemoCompany[] = [
   },
 ];
 
-const c = clients();
+async function main(): Promise<void> {
+  const c = clients();
 
-if (!isLocal(c.url)) {
-  console.error(`seed: refusing to touch ${c.url}. The seed is for local databases only.`);
+  if (!isLocal(c.url)) {
+    console.error(`seed: refusing to touch ${c.url}. The seed is for local databases only.`);
+    process.exit(1);
+  }
+
+  for (const company of COMPANIES) {
+    const { companyId, created } = await provision(c, company, PASSWORD);
+    console.log(
+      `seed: ${created ? 'created' : 'already there'} ${company.name} (${companyId}) ` +
+        `with ${company.people.length} people`,
+    );
+  }
+
+  console.log(`seed: every demo account uses the password "${PASSWORD}"`);
+}
+
+main().catch((error: unknown) => {
+  console.error('seed: failed', error);
   process.exit(1);
-}
-
-for (const company of COMPANIES) {
-  const { companyId, created } = await provision(c, company, PASSWORD);
-  console.log(
-    `seed: ${created ? 'created' : 'already there'} ${company.name} (${companyId}) ` +
-      `with ${company.people.length} people`,
-  );
-}
-
-console.log(`seed: every demo account uses the password "${PASSWORD}"`);
+});

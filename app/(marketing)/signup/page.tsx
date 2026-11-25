@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AuthCard, FormError } from '@/ui/auth-card';
 import { Button } from '@/ui/button';
+import { useHydrated } from '@/ui/use-hydrated';
 import { Field, TextInput } from '@/ui/field';
 import { browserDb } from '@/server/db/browser';
 
@@ -15,6 +16,7 @@ import { browserDb } from '@/server/db/browser';
  */
 export default function SignupPage() {
   const router = useRouter();
+  const ready = useHydrated();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -77,7 +79,7 @@ export default function SignupPage() {
         </>
       }
     >
-      <form onSubmit={signUp} className="space-y-4">
+      <form method="post" onSubmit={signUp} className="space-y-4">
         <FormError message={error} />
         <Field label="Your name">
           <TextInput
@@ -109,7 +111,7 @@ export default function SignupPage() {
             onChange={(e) => setPassword(e.target.value)}
           />
         </Field>
-        <Button type="submit" variant="primary" disabled={busy} className="w-full">
+        <Button type="submit" variant="primary" disabled={busy || !ready} className="w-full">
           {busy ? 'Creating…' : 'Create account'}
         </Button>
       </form>

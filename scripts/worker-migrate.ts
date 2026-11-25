@@ -8,8 +8,15 @@ import { runMigrations } from 'graphile-worker';
 
 loadEnv({ path: ['.env.local', '.env'] });
 
-const connectionString =
-  process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@127.0.0.1:54322/postgres';
+async function main(): Promise<void> {
+  const connectionString =
+    process.env.DATABASE_URL ?? 'postgresql://postgres:postgres@127.0.0.1:54322/postgres';
 
-await runMigrations({ connectionString });
-console.log('worker: job queue schema is up to date');
+  await runMigrations({ connectionString });
+  console.log('worker: job queue schema is up to date');
+}
+
+main().catch((error: unknown) => {
+  console.error('worker: could not install the job queue schema', error);
+  process.exit(1);
+});

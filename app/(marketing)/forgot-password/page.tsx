@@ -4,10 +4,12 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { AuthCard, FormError } from '@/ui/auth-card';
 import { Button } from '@/ui/button';
+import { useHydrated } from '@/ui/use-hydrated';
 import { Field, TextInput } from '@/ui/field';
 import { browserDb } from '@/server/db/browser';
 
 export default function ForgotPasswordPage() {
+  const ready = useHydrated();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +44,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <AuthCard title="Reset your password" subline="We will email you a link.">
-      <form onSubmit={send} className="space-y-4">
+      <form method="post" onSubmit={send} className="space-y-4">
         <FormError message={error} />
         <Field label="Email">
           <TextInput
@@ -54,7 +56,7 @@ export default function ForgotPasswordPage() {
             onChange={(e) => setEmail(e.target.value)}
           />
         </Field>
-        <Button type="submit" variant="primary" disabled={busy} className="w-full">
+        <Button type="submit" variant="primary" disabled={busy || !ready} className="w-full">
           {busy ? 'Sending…' : 'Send reset link'}
         </Button>
       </form>

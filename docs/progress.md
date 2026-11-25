@@ -2,8 +2,10 @@
 
 ## Phase 1 — Foundation
 
-**Status: built, waiting for the owner's review.** Branch `phase-1-foundation`.
-Nothing of phase 2 has been started.
+**Status: built and verified locally, waiting for the owner's review.** Branch
+`phase-1-foundation`. Every "done when" item is true except the last one, CI,
+which cannot run until there is a GitHub remote. Nothing of phase 2 has been
+started.
 
 ### What is there
 
@@ -42,27 +44,64 @@ Nothing of phase 2 has been started.
 
 ### What has actually been proven
 
-- `pnpm typecheck`, `pnpm lint` (zero warnings) and `pnpm test` (39 domain and
-  action tests) pass.
-- `pnpm build` compiles all 27 routes.
-- All 8 migrations apply to a brand-new empty PostgreSQL 16 database, and 41
-  policy probes pass against it: two carriers, their owners, a dispatcher, a
-  driver and a signed-out visitor; cross-tenant read, insert, update and delete
-  all refused; events and audit rows unforgeable; the plan unwritable from the
-  browser; an owner unable to create a second carrier; an invitation unusable
-  from another mailbox.
+Everything below was run against the real local Supabase stack (PostgreSQL 17
+with PostGIS, Auth, Storage, Realtime) on 26 November 2026.
 
-### What has NOT been proven yet
+| Check | Result |
+| --- | --- |
+| `pnpm typecheck` | passes |
+| `pnpm lint` | passes, zero warnings |
+| `pnpm test` (domain + actions) | 39 tests pass |
+| `pnpm test:rls` | 129 tests pass |
+| `pnpm e2e` | 4 tests pass |
+| `pnpm build` | 27 routes compile |
+| `pnpm db:reset` | all 8 migrations apply to an empty database |
+| `pnpm db:seed` | two carriers, 8 people, created through signup and invitations |
 
-- **`pnpm test:rls` and `pnpm e2e` have never run.** Both need the Supabase CLI's
-  local stack, which needs Docker, and Docker is not installed on this machine.
-  The SQL and the policies were checked against a scratch PostgreSQL 16 cluster
-  with a small Supabase shim instead (`auth.users`, `auth.uid()`, the roles, the
-  realtime publication); PostGIS was skipped there because the Homebrew
-  PostgreSQL has no PostGIS build.
-- **CI has never run**: there is no GitHub remote yet.
-- **Nothing has been seen in a browser.** The screens follow
-  `docs/spec/approved-mockups.md` but no one has looked at them.
+What the RLS run covers: the 12 tables carrying a `company_id` — read, insert,
+update and delete, in both directions between two carriers — judged by whether
+the other carrier's data actually changed rather than by which error came back,
+so an attempt that trips a not-null constraint before RLS sees it cannot pass
+for proof. Plus the driver's narrower view, and a check that the committed
+database types still match the database.
+
+What the end-to-end run covers: an owner signs up, sets the carrier up and sees
+9 sections; invites a dispatcher; the dispatcher accepts in a separate browser
+and sees exactly 5, with `/billing` answering 404 rather than merely hiding a
+link; a signed-out visitor is redirected to sign in; and one click on Today
+becomes a card without the page reloading — trigger, events row, queued job,
+worker rule, suggestion, Realtime, screen.
+
+Before Docker was available the same schema was also checked against a scratch
+PostgreSQL 16 cluster with a Supabase shim (41 policy probes). That harness has
+served its purpose; the real stack covers it now.
+
+The office shell, Today and Users and roles were opened in a browser at desktop
+and phone width and match the approved style.
+
+### Three defects the test run found
+
+1. **The sign-in form put the password in the address bar.** `next dev` serves
+   its own chunks only to hosts listed in `allowedDevOrigins`, and everything
+   local here is `127.0.0.1`, so no page ever hydrated: React never took over,
+   the submit button stayed a plain HTML submit button, and the browser sent the
+   form as a GET — `/signup?...&password=...`. Fixed three ways: the origin is
+   allowed in `next.config.ts`; every form carries `method="post"`, so a submit
+   that escapes the handler cannot put values in a URL; and every submit button
+   waits for hydration (`src/ui/use-hydrated.ts`), which also stops someone
+   pressing Enter into a dead form.
+2. **`pnpm db:reset` and `pnpm db:seed` crashed.** Both scripts used top-level
+   `await`, which tsx compiles as CommonJS here. Wrapped in `main()`.
+3. **Users and roles had an overloaded header.** The invite form (three
+   controls) sat beside the global search and wrapped into a jumble. It has its
+   own panel now, and the header holds the title, subline and search, as the
+   approved layout says.
+
+### What is still not done
+
+- **CI has never run.** There is no GitHub remote, so the workflow in
+  `.github/workflows/ci.yml` has never executed. This is the last unticked item
+  on the phase 1 "done when" list.
 - **Sentry** is wired and silent: no DSN yet.
 - The PWA manifest ships an SVG icon only; proper PNG icons are still to come.
 
@@ -104,29 +143,31 @@ Nothing of phase 2 has been started.
 10. **Today shows only the "Needs you" panel.** The summary strip and the Trucks
     panel in the approved mockup need loads and trucks, so they arrive with
     phases 2 and 3.
-11. **Invitations are links, as agreed**, for every role. Email delivery waits
+11. **`.claude/launch.json`** is a one-entry file so the app can be previewed in
+    a browser pane with a single command. It changes nothing about the app.
+12. **Invitations are links, as agreed**, for every role. Email delivery waits
     for Resend in phase 5. Icons are Lucide, as agreed.
 
 ### Open questions
 
-None blocking. Two things are needed from the owner before phase 1 can be
-called done:
+One thing is needed from the owner: **a GitHub repository**, so CI can run.
+The branch is local only; there is no remote.
 
-- **Docker** (OrbStack, Docker Desktop or Colima) so the Supabase CLI can run
-  locally.
-- **A GitHub repository** so CI can run. There is no remote yet; the branch is
-  local only.
-
-### To finish phase 1
+### Running it yourself
 
 ```
-pnpm db:start      # needs Docker
-pnpm db:env        # writes .env.local from the local stack
-pnpm db:reset      # migrations from empty + the worker's job queue schema
+pnpm db:start      # the local Supabase stack (needs Docker running)
+pnpm db:env        # writes .env.local from that stack
+pnpm db:reset      # every migration from empty, plus the job queue schema
 pnpm db:seed       # two demo carriers
-pnpm test:rls
-pnpm e2e
+pnpm dev           # http://127.0.0.1:3000
 ```
+
+The demo accounts are listed in `scripts/seed.ts` — `owner@alpha.test` and the
+rest, all with the password printed by the seed. Local development only.
+
+To run the checks: `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm test:rls`,
+`pnpm e2e`.
 
 Then the review list in `docs/owner-setup.md`. **Phase 2 does not start until
 the owner says so.**

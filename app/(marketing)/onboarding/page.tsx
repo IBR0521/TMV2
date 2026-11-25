@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthCard, FormError } from '@/ui/auth-card';
 import { Button } from '@/ui/button';
+import { useHydrated } from '@/ui/use-hydrated';
 import { Field, Select, TextInput } from '@/ui/field';
 import { createCompany } from '@/server/actions/companies';
 
@@ -23,6 +24,7 @@ const TIME_ZONES = [
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const ready = useHydrated();
   const [name, setName] = useState('');
   const [mcNumber, setMcNumber] = useState('');
   const [dotNumber, setDotNumber] = useState('');
@@ -52,7 +54,7 @@ export default function OnboardingPage() {
 
   return (
     <AuthCard title="Set up your carrier" subline="You can change any of this later in Settings.">
-      <form onSubmit={save} className="space-y-4">
+      <form method="post" onSubmit={save} className="space-y-4">
         <FormError message={error} />
         <Field label="Carrier name" error={fieldErrors.name?.[0]}>
           <TextInput name="name" required value={name} onChange={(e) => setName(e.target.value)} />
@@ -74,7 +76,7 @@ export default function OnboardingPage() {
             ))}
           </Select>
         </Field>
-        <Button type="submit" variant="primary" disabled={busy} className="w-full">
+        <Button type="submit" variant="primary" disabled={busy || !ready} className="w-full">
           {busy ? 'Saving…' : 'Finish setup'}
         </Button>
       </form>

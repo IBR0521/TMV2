@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { Button } from '@/ui/button';
+import { useHydrated } from '@/ui/use-hydrated';
 import { sendTestPing } from '@/server/actions/automation';
 
 /**
@@ -10,6 +11,7 @@ import { sendTestPing } from '@/server/actions/automation';
  * transaction; the card it produces should appear below without a refresh.
  */
 export function TestEventButton() {
+  const ready = useHydrated();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -18,7 +20,7 @@ export function TestEventButton() {
       <Button
         variant="secondary"
         data-testid="send-test-event"
-        disabled={pending}
+        disabled={pending || !ready}
         onClick={() =>
           startTransition(async () => {
             setError(null);

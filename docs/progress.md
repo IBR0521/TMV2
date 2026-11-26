@@ -33,8 +33,20 @@ pull request yet.
    and customer list for both carriers, with paperwork dated relative to the
    day the seed runs so the expiry chips are alive.
 
-All green: typecheck, lint, UI guard (116 files), 123 unit and action tests,
+All green: typecheck, lint, UI guard (116 files), 137 unit and action tests,
 210 RLS tests, 4 end-to-end, 4 visual. The visual baselines are untouched.
+
+5. **The expiring paperwork rule.** A card on Today 30 days before a CDL,
+   medical card, registration, insurance or inspection expires, and a second
+   at 7. The daily job raises an `events` row like any trigger, so the card is
+   produced by the same pipe; the rule itself is pure. The dedupe key carries
+   the threshold, and a document whose card already exists in any state is
+   skipped, so each window is raised once and a dismissed card does not come
+   back. Today is read in each carrier's own zone.
+
+   Checked against the real stack: the job raised exactly the five cards the
+   seeded paperwork deserves and none for the carrier with nothing due; a
+   second run with one card dismissed added no events and no cards.
 
 ### What the screens deliberately do not show
 
@@ -77,9 +89,9 @@ before the forms multiply.
 
 ### Next
 
-Uploads, the spreadsheet import, FMCSA DOT autofill, geocoding, the setup
-wizard, the compliance.expiring rule and global search. The owner decided on
-26 November 2026 to leave the form-level error as it is.
+Geocoding, FMCSA DOT autofill, the spreadsheet import, uploads, the setup
+wizard and global search. The owner decided on 26 November 2026 to leave the
+form-level error as it is.
 
 ### Waiting on the owner
 

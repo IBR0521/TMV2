@@ -16,16 +16,25 @@ import {
 import { complianceKindLabel, complianceKindsFor } from '@/domain/fleet';
 import type { ComplianceKind, ComplianceSubject } from '@/domain/fleet';
 import { useHydrated } from '@/client/use-hydrated';
-import { removeComplianceDocument, saveComplianceDocument } from '@/server/actions/fleet';
+import { browserDb } from '@/server/db/browser';
+import {
+  attachDocument,
+  openDocument,
+  removeDocument,
+  requestUpload,
+} from '@/server/actions/documents';
+import { saveComplianceDocument } from '@/server/actions/fleet';
 
 /**
  * Expiring paperwork for a driver, a truck or a trailer: what is on file and
  * when it runs out. One panel for all three, because the only difference is
  * which kinds of document the form offers — and the domain decides that.
  *
- * The scan itself arrives with uploads later in this phase. A row is already
- * the kind, the date and a note, which is exactly what the daily expiry rule
- * reads, so the rule can be built and tested before any file exists.
+ * A scan is optional: the expiry date is what the daily rule reads, and a
+ * carrier who has the date but not the paperwork to hand should still be able
+ * to record it. When there is a file, the browser asks the server where to put
+ * it, uploads it there, and then asks for the row — so it never chooses its
+ * own path, and the storage policy checks the company folder again anyway.
  */
 export type PaperworkRow = {
   id: string;
@@ -35,7 +44,23 @@ export type PaperworkRow = {
   label: string | null;
   tone: 'warning' | 'idle';
   note: string | null;
+  fileId: string | null;
 };
+
+const UPLOADABLE = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/heic',
+  'application/pdf',
+] as const;
+
+type Uploadable = (typeof UPLOADABLE)[number];
+
+/** A browser will report any type it likes; only these five are accepted. */
+function asUploadable(mime: string): Uploadable | null {
+  return (UPLOADABLE as readonly string[]).includes(mime) ? (mime as Uploadable) : null;
+}
 
 export function CompliancePanel({
   subject,
@@ -54,12 +79,16 @@ export function CompliancePanel({
   const [kind, setKind] = useState<ComplianceKind>(kinds[0] ?? 'registration');
   const [expiresOn, setExpiresOn] = useState('');
   const [note, setNote] = useState('');
+  const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   function add() {
     setError(null);
     startTransition(async () => {
-      const result = await saveComplianceDocument({ subject, subjectId, kind, expiresOn, note });
+      const result =
+        file === null
+          ? await saveComplianceDocument({ subject, subjectId, kind, expiresOn, note })
+          : await withFile(file);
 
       if (!result.ok) {
         setError(result.error);
@@ -68,14 +97,71 @@ export function CompliancePanel({
 
       setExpiresOn('');
       setNote('');
+      setFile(null);
       router.refresh();
     });
   }
 
-  function remove(documentId: string) {
+  /**
+   * Ask where to put it, upload it there, then ask for the row. If the upload
+   * fails nothing is recorded, and if the row fails the server clears up the
+   * object it told us to write.
+   */
+  async function withFile(chosen: File) {
+    const mime = asUploadable(chosen.type);
+    if (mime === null) {
+      return { ok: false as const, error: 'Upload a PDF or a photo.' };
+    }
+
+    const target = await requestUpload({ mime, sizeBytes: chosen.size });
+    if (!target.ok) return target;
+
+    const sent = await browserDb()
+      .storage.from('documents')
+      .upload(target.data.path, chosen, { contentType: chosen.type });
+
+    if (sent.error) {
+      return { ok: false as const, error: 'That file could not be uploaded. Try again.' };
+    }
+
+    return attachDocument({
+      path: target.data.path,
+      mime,
+      sizeBytes: chosen.size,
+      subject,
+      subjectId,
+      kind,
+      expiresOn,
+      note,
+    });
+  }
+
+  async function open(fileId: string) {
+    setError(null);
+
+    // The tab is opened on the click itself, before the await: a browser only
+    // allows a pop-up while it can still see the gesture that asked for it,
+    // and signing the link takes a round trip. If pop-ups are blocked the
+    // document opens here instead, which the back button undoes.
+    const tab = window.open('', '_blank');
+    if (tab !== null) tab.opener = null;
+
+    const result = await openDocument({ fileId });
+
+    if (!result.ok) {
+      tab?.close();
+      setError(result.error);
+      return;
+    }
+
+    if (tab === null) window.location.assign(result.data.url);
+    else tab.location.replace(result.data.url);
+  }
+
+  function remove(documentId: string, fileId: string | null) {
     setError(null);
     startTransition(async () => {
-      const result = await removeComplianceDocument({ documentId });
+      const result = await removeDocument({ documentId, fileId: fileId ?? '' });
       if (!result.ok) {
         setError(result.error);
         return;
@@ -116,7 +202,20 @@ export function CompliancePanel({
                     {document.label}
                   </StatusChip>
                 )}
-                <Button size="sm" disabled={pending || !ready} onClick={() => remove(document.id)}>
+                {document.fileId === null ? null : (
+                  <Button
+                    size="sm"
+                    disabled={!ready}
+                    onClick={() => void open(document.fileId as string)}
+                  >
+                    View
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  disabled={pending || !ready}
+                  onClick={() => remove(document.id, document.fileId)}
+                >
                   Remove
                 </Button>
               </>
@@ -155,6 +254,18 @@ export function CompliancePanel({
             onChange={(event) => setNote(event.target.value)}
             placeholder={subject === 'driver' ? 'Class A, hazmat' : 'Annual, state of Texas'}
             aria-label="Note"
+          />
+        </Field>
+
+        <Field
+          label="Scan or photo"
+          hint={file === null ? 'Optional. PDF or a photo, up to 25 MB.' : file.name}
+        >
+          <Input
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/heic,application/pdf"
+            aria-label="Scan or photo"
+            onChange={(event) => setFile(event.target.files?.[0] ?? null)}
           />
         </Field>
       </FormGrid>

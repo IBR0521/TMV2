@@ -44,6 +44,7 @@ export default async function DriverPage({ params }: { params: Promise<{ driverI
     label: document.expiry === null || document.expiry.state === 'ok' ? null : document.expiry.label,
     tone: document.expiry !== null && document.expiry.state !== 'ok' ? 'warning' : 'idle',
     note: document.note,
+    fileId: document.fileId,
   }));
 
   return (

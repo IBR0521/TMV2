@@ -53,6 +53,7 @@ export default async function UnitPage({ params }: { params: Promise<{ unitId: s
     label: document.expiry === null || document.expiry.state === 'ok' ? null : document.expiry.label,
     tone: document.expiry !== null && document.expiry.state !== 'ok' ? 'warning' : 'idle',
     note: document.note,
+    fileId: document.fileId,
   }));
 
   return (

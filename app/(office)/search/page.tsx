@@ -1,8 +1,7 @@
 import { redirect } from 'next/navigation';
-import { Button, EmptyState, ListRow, PageHeader, Panel, PanelHeader, TextLink } from '@/ui';
+import { Button, EmptyState, ListRow, PageHeader, Panel, PanelHeader, SearchField, TextLink } from '@/ui';
 import { getContext } from '@/server/context';
 import { search, type SearchHit } from '@/server/services/search';
-import { SearchBox } from './search-box';
 
 export const metadata = { title: 'Search' };
 
@@ -10,10 +9,9 @@ export const metadata = { title: 'Search' };
  * What a carrier is looking for: a driver, a unit, a customer or a dock.
  *
  * A page rather than a dropdown, because a page can be shared, bookmarked and
- * reached with the back button — and because the design kit's SearchField in
- * the header is decorative: it takes no name and no handler, so it cannot be
- * submitted. Wiring it up means one prop in src/ui, which is the owner's to
- * add (CLAUDE.md rule 7). Until then the search box lives here.
+ * reached with the back button. The box in the header is the kit's own
+ * SearchField, pointed here; this page shows the same field with what was
+ * typed still in it, so the search can be corrected where the results are.
  */
 const KIND_LABEL: Record<SearchHit['kind'], string> = {
   driver: 'Driver',
@@ -43,9 +41,9 @@ export default async function SearchPage({
             ? 'Drivers, trucks, trailers, customers and facilities.'
             : `${results.hits.length} ${results.hits.length === 1 ? 'result' : 'results'} for “${results.term}”`
         }
-      />
-
-      <SearchBox term={results.term} />
+      >
+        <SearchField action="/search" defaultValue={results.term} />
+      </PageHeader>
 
       <Panel label="Results">
         <PanelHeader title="Results" count={results.hits.length} />

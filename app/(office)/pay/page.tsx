@@ -9,7 +9,7 @@ export default async function Page() {
   return (
     <>
       <PageHeader title="Driver pay" subtitle="Settlements for each pay period">
-        <SearchField />
+        <SearchField action="/search" />
       </PageHeader>
 
       <Panel>

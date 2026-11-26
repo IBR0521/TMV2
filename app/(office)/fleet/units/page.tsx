@@ -126,7 +126,7 @@ export default async function UnitsPage({
         title="Trucks and trailers"
         subtitle={`${trucks.length} ${trucks.length === 1 ? 'truck' : 'trucks'} · ${trailers.length} ${trailers.length === 1 ? 'trailer' : 'trailers'}`}
       >
-        <SearchField />
+        <SearchField action="/search" />
         {empty ? null : (
           <Button variant="primary" href={newTrailer ? '/fleet/units/new?kind=trailer' : '/fleet/units/new'}>
             {newTrailer ? 'New trailer' : 'New truck'}

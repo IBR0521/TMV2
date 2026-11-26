@@ -80,7 +80,7 @@ export default async function DriversPage() {
   return (
     <>
       <PageHeader title="Drivers" subtitle={subtitleFor(drivers)}>
-        <SearchField />
+        <SearchField action="/search" />
         {empty ? null : (
           <Button variant="primary" href="/fleet/drivers/new">
             New driver

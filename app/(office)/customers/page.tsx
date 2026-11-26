@@ -75,7 +75,7 @@ export default async function CustomersPage() {
         title="Customers"
         subtitle={`${customers.length} ${customers.length === 1 ? 'customer' : 'customers'}`}
       >
-        <SearchField />
+        <SearchField action="/search" />
         {empty ? null : (
           <Button variant="primary" href="/customers/new">
             New customer

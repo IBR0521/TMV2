@@ -43,7 +43,7 @@ export default async function TodayPage() {
   return (
     <>
       <PageHeader title="Today" subtitle={longDate(new Date(), company.timezone)}>
-        <SearchField />
+        <SearchField action="/search" />
         <TestEventButton />
       </PageHeader>
 

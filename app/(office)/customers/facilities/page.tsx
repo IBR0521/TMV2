@@ -68,7 +68,7 @@ export default async function FacilitiesPage() {
         title="Facilities"
         subtitle={`${facilities.length} ${facilities.length === 1 ? 'place' : 'places'} freight moves through`}
       >
-        <SearchField />
+        <SearchField action="/search" />
         {empty ? null : (
           <Button variant="primary" href="/customers/facilities/new">
             New facility

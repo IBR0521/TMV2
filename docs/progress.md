@@ -34,8 +34,8 @@ pull request yet.
    and customer list for both carriers, with paperwork dated relative to the
    day the seed runs so the expiry chips are alive.
 
-All green: typecheck, lint, UI guard (133 files), 169 unit and action tests,
-226 RLS tests, 8 end-to-end, 4 visual, production build. The visual baselines
+All green: typecheck, lint, UI guard (132 files), 169 unit and action tests,
+226 RLS tests, 10 end-to-end, 4 visual, production build. The visual baselines
 are untouched.
 
 5. **The expiring paperwork rule.** A card on Today 30 days before a CDL,
@@ -138,7 +138,8 @@ rather than lingering as something that answers requests but does no work.
 11. **Global search.** Drivers, trucks, trailers, customers and facilities,
     scoped by company and proved so by six tests — including two carriers with
     a driver of the same name. What a carrier types is text, not a pattern:
-    "%%" finds nothing.
+    "%%" finds nothing. The box in all fourteen page headers submits to it,
+    and the results page shows the same box with what was typed still in it.
 
 ### Phase 2 "done when", line by line
 
@@ -186,24 +187,25 @@ store and nothing to keep fresh. **`fmcsa_carriers` is therefore unused.** It
 is still in the schema; dropping a table is destructive, so it waits for the
 owner's word.
 
-### Two things the kit does not have
+### Two things the kit did not have
 
 1. **A form-level error line.** A field error has `Field error=`, but a problem
    about the whole form — "Your plan covers 5 active trucks" — has nowhere of
    its own. It is shown on the first field, which is what the phase 1 invite
    form does. The owner decided on 26 November 2026 to leave it.
-2. **A search box that can be submitted.** `SearchField` sits in every page
-   header and takes no name and no handler, so it cannot be submitted: it is
-   decorative. `/search` works by URL and is tested, but nothing leads to it
-   until SearchField takes a `name` or an `onSearch`. **This one blocks the
-   last part of phase 2 and needs the owner.**
+2. **A search box that can be submitted.** `SearchField` took no name and no
+   handler, so it could not be submitted. **Closed on 26 November 2026:** the
+   owner asked me to make the change, so `SearchField` now takes an optional
+   `action` and becomes a plain GET form when it is set. Without `action` it
+   renders exactly as before — which the four visual tests confirm against the
+   untouched baselines — so nothing that already used it changed.
 
 ### Next
 
 Nothing in the phase 2 brief. What is left is the owner's: the basemap
-decision for the facility pin, a `name` or `onSearch` on the kit's
-SearchField, whether to drop the now-unused `fmcsa_carriers` table, and
-whether to add a way to sign out. Then the pull request, and phase 3. The owner decided on 26 November 2026 to leave the
+decision for the facility pin, whether to drop the now-unused
+`fmcsa_carriers` table, and whether to add a way to sign out. Then the pull
+request, and phase 3. The owner decided on 26 November 2026 to leave the
 form-level error as it is.
 
 ### Waiting on the owner

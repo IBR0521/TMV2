@@ -9,7 +9,7 @@ export default async function Page() {
   return (
     <>
       <PageHeader title="Company" subtitle="Name, MC and DOT, time zone">
-        <SearchField />
+        <SearchField action="/search" />
       </PageHeader>
 
       <Panel>

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { isUsTimezone } from '@/domain/facilities';
 import { action } from '../action';
 import * as facilities from '../services/facilities';
 
@@ -12,7 +13,10 @@ const facilityForm = z.object({
   id: z.uuid().optional(),
   name: z.string().trim().min(2, 'Enter what this place is called.').max(160),
   address: z.string().trim().min(5, 'Enter the street address.').max(300),
-  timezone: z.string().trim().min(3, 'Choose a time zone.').max(60),
+  timezone: z
+    .string()
+    .trim()
+    .refine(isUsTimezone, 'Choose one of the US time zones.'),
   detentionFreeMinutes: z
     .union([z.number(), z.string()])
     .optional()

@@ -2,8 +2,9 @@
 
 ## Phase 2 — Fleet and customers
 
-**Status: in progress on branch `phase-2-fleet`. All seven screens are built;
-the automation, import and setup work is still to come.**
+**Status: everything phase 2 asked for is built on branch `phase-2-fleet`,
+except two things waiting on the owner (below). Nothing is pushed and there is
+no pull request yet.**
 The plan was approved on 26 November 2026. Nothing is pushed and there is no
 pull request yet.
 
@@ -33,8 +34,8 @@ pull request yet.
    and customer list for both carriers, with paperwork dated relative to the
    day the seed runs so the expiry chips are alive.
 
-All green: typecheck, lint, UI guard (124 files), 169 unit and action tests,
-220 RLS tests, 4 end-to-end, 4 visual, production build. The visual baselines
+All green: typecheck, lint, UI guard (133 files), 169 unit and action tests,
+226 RLS tests, 8 end-to-end, 4 visual, production build. The visual baselines
 are untouched.
 
 5. **The expiring paperwork rule.** A card on Today 30 days before a CDL,
@@ -129,6 +130,33 @@ rather than lingering as something that answers requests but does no work.
    the browser. `files` became deletable to allow that; phase 1 had not
    anticipated uploads.
 
+10. **The setup wizard.** Carrier, fleet, customers, team — every step after
+    the carrier skippable, the steps reusing the same importer and invite form
+    Settings uses. Today keeps the checklist, worked out from what is actually
+    in the company rather than a flag, so it disappears as the carrier fills
+    it in and never has to be dismissed.
+11. **Global search.** Drivers, trucks, trailers, customers and facilities,
+    scoped by company and proved so by six tests — including two carriers with
+    a driver of the same name. What a carrier types is text, not a pattern:
+    "%%" finds nothing.
+
+### Phase 2 "done when", line by line
+
+- **A sample CSV of 20 trucks and 20 drivers imports in under 15 minutes from
+  a fresh signup, including the setup wizard.** Done, and covered by
+  `tests/e2e/import-a-fleet.spec.ts`: signup, carrier, both imports and both
+  fleet screens, in about two seconds of machine time.
+- **A DOT number from the census file fills the company form.** Done, live
+  rather than mirrored.
+- **A facility saved with an address shows on the map at the right place.**
+  Half done: it is geocoded and placed, and checked against the real service.
+  There is no map yet — that waits on the basemap decision.
+- **Documents expiring in 30 and 7 days produce one suggestion each, never
+  duplicates.** Done, and checked against the real stack twice over.
+- **RLS tests cover every new table.** Done; the sweep picks them up on its
+  own, and storage and search have tests of their own.
+- **Playwright covers the setup wizard.** Done, three tests.
+
 ### Something missing that nobody has asked for yet
 
 **There is no way to sign out.** Phase 1 built sign-in and never built its
@@ -158,18 +186,24 @@ store and nothing to keep fresh. **`fmcsa_carriers` is therefore unused.** It
 is still in the schema; dropping a table is destructive, so it waits for the
 owner's word.
 
-### One thing the kit does not have
+### Two things the kit does not have
 
-**A form-level error line.** A field error has `Field error=`, but a problem
-about the whole form — "Your plan covers 5 active trucks" — has nowhere of its
-own. It is shown on the first field, which is what the phase 1 invite form
-does, so this is consistent rather than invented. `Notice` is the nearest
-thing but belongs under the page header, outside the panel. Worth a decision
-before the forms multiply.
+1. **A form-level error line.** A field error has `Field error=`, but a problem
+   about the whole form — "Your plan covers 5 active trucks" — has nowhere of
+   its own. It is shown on the first field, which is what the phase 1 invite
+   form does. The owner decided on 26 November 2026 to leave it.
+2. **A search box that can be submitted.** `SearchField` sits in every page
+   header and takes no name and no handler, so it cannot be submitted: it is
+   decorative. `/search` works by URL and is tested, but nothing leads to it
+   until SearchField takes a `name` or an `onSearch`. **This one blocks the
+   last part of phase 2 and needs the owner.**
 
 ### Next
 
-The setup wizard and global search. The owner decided on 26 November 2026 to leave the
+Nothing in the phase 2 brief. What is left is the owner's: the basemap
+decision for the facility pin, a `name` or `onSearch` on the kit's
+SearchField, whether to drop the now-unused `fmcsa_carriers` table, and
+whether to add a way to sign out. Then the pull request, and phase 3. The owner decided on 26 November 2026 to leave the
 form-level error as it is.
 
 ### Waiting on the owner

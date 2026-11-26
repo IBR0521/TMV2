@@ -8,6 +8,7 @@ import {
   moveTo,
   nextStep,
   nextStepLabel,
+  parseMoneyToCents,
   rateCents,
 } from '@/domain/load';
 
@@ -227,5 +228,48 @@ describe('the money on a load', () => {
     });
 
     expect(estimate.profitCents).toBeLessThan(0);
+  });
+});
+
+describe('reading money a person typed', () => {
+  it('reads the ways a rate is written', () => {
+    expect(parseMoneyToCents('2712')).toBe(271_200);
+    expect(parseMoneyToCents('2712.50')).toBe(271_250);
+    expect(parseMoneyToCents('2712.5')).toBe(271_250);
+    expect(parseMoneyToCents('$2,712.50')).toBe(271_250);
+    expect(parseMoneyToCents(' 2712 ')).toBe(271_200);
+  });
+
+  it('reads a deduction', () => {
+    expect(parseMoneyToCents('-50')).toBe(-5_000);
+    expect(parseMoneyToCents('-50.25')).toBe(-5_025);
+  });
+
+  // 0.1 + 0.2 is the oldest bug in accounting software.
+  it('never goes through a float', () => {
+    expect(parseMoneyToCents('0.10')).toBe(10);
+    expect(parseMoneyToCents('0.20')).toBe(20);
+    expect(parseMoneyToCents('1234567.89')).toBe(123_456_789);
+  });
+
+  it('is nothing at all when it is not money', () => {
+    expect(parseMoneyToCents('')).toBeNull();
+    expect(parseMoneyToCents('about three thousand')).toBeNull();
+    expect(parseMoneyToCents('2712.555')).toBeNull();
+    expect(parseMoneyToCents('1.2.3')).toBeNull();
+    expect(parseMoneyToCents('12-34')).toBeNull();
+  });
+
+  // Commas and spaces are punctuation, not meaning: there is no reading of
+  // "2,712," or "2 712" that is not 2712, so a slip of the finger — or a
+  // thousands separator typed as a space — is not worth a refusal.
+  it('forgives a stray comma or a space between thousands', () => {
+    expect(parseMoneyToCents('2,712,')).toBe(271_200);
+    expect(parseMoneyToCents('2 712')).toBe(271_200);
+  });
+
+  // The one shape that could be misread is refused rather than guessed at.
+  it('refuses a continental number instead of misreading it', () => {
+    expect(parseMoneyToCents('2.712,50')).toBeNull();
   });
 });

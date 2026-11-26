@@ -22,6 +22,32 @@ export const LOAD_STATUSES = [
 
 export type LoadStatus = (typeof LOAD_STATUSES)[number];
 
+export const CHARGE_KINDS = [
+  'linehaul',
+  'fuel_surcharge',
+  'detention',
+  'lumper',
+  'layover',
+  'tonu',
+  'other',
+] as const;
+
+export type ChargeKind = (typeof CHARGE_KINDS)[number];
+
+const CHARGE_LABELS: Record<ChargeKind, string> = {
+  linehaul: 'Linehaul',
+  fuel_surcharge: 'Fuel surcharge',
+  detention: 'Detention',
+  lumper: 'Lumper',
+  layover: 'Layover',
+  tonu: 'Truck ordered, not used',
+  other: 'Other',
+};
+
+export function chargeKindLabel(kind: ChargeKind): string {
+  return CHARGE_LABELS[kind];
+}
+
 const LABELS: Record<LoadStatus, string> = {
   draft: 'Draft',
   booked: 'Booked',
@@ -222,4 +248,24 @@ export function estimateProfit(args: {
     profitCents,
     perMileCents: miles > 0 ? Math.round(revenueCents / miles) : null,
   };
+}
+
+/**
+ * What a person typed, as integer cents, or null if it is not money.
+ *
+ * Money is integer cents and never a float (CLAUDE.md rule 2), so the string
+ * is read digit by digit rather than through parseFloat: 0.1 + 0.2 is the
+ * oldest bug in accounting software and there is no reason to invite it.
+ * "$2,712.50", "2712.5" and "2712" all mean the same thing; "2712.555" does
+ * not mean anything and says so.
+ */
+export function parseMoneyToCents(raw: string): number | null {
+  const cleaned = raw.trim().replace(/[$,\s]/g, '');
+  if (!/^-?\d+(\.\d{1,2})?$/.test(cleaned)) return null;
+
+  const negative = cleaned.startsWith('-');
+  const [whole = '0', decimals = ''] = cleaned.replace('-', '').split('.');
+  const cents = Number(whole) * 100 + Number(decimals.padEnd(2, '0'));
+
+  return negative ? -cents : cents;
 }

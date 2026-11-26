@@ -105,14 +105,14 @@ isOneToOne: false
                   ]
                 },"companies": {
                   Row: {
-                    "archived_at": string | null,"company_id": string,"created_at": string,"dot_number": string | null,"id": string,"mc_number": string | null,"name": string,"timezone": string,"updated_at": string
+                    "archived_at": string | null,"company_id": string,"created_at": string,"dot_number": string | null,"driver_pay_cents_per_mile": number,"fuel_cents_per_mile": number,"id": string,"mc_number": string | null,"name": string,"timezone": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "archived_at"?: string | null,"company_id"?: never,"created_at"?: string,"dot_number"?: string | null,"id"?: string,"mc_number"?: string | null,"name": string,"timezone"?: string,"updated_at"?: string
+                    "archived_at"?: string | null,"company_id"?: never,"created_at"?: string,"dot_number"?: string | null,"driver_pay_cents_per_mile"?: number,"fuel_cents_per_mile"?: number,"id"?: string,"mc_number"?: string | null,"name": string,"timezone"?: string,"updated_at"?: string
                   }
                   Update: {
-                    "archived_at"?: string | null,"company_id"?: never,"created_at"?: string,"dot_number"?: string | null,"id"?: string,"mc_number"?: string | null,"name"?: string,"timezone"?: string,"updated_at"?: string
+                    "archived_at"?: string | null,"company_id"?: never,"created_at"?: string,"dot_number"?: string | null,"driver_pay_cents_per_mile"?: number,"fuel_cents_per_mile"?: number,"id"?: string,"mc_number"?: string | null,"name"?: string,"timezone"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     

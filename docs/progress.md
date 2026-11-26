@@ -33,7 +33,7 @@ pull request yet.
    and customer list for both carriers, with paperwork dated relative to the
    day the seed runs so the expiry chips are alive.
 
-All green: typecheck, lint, UI guard (116 files), 137 unit and action tests,
+All green: typecheck, lint, UI guard (116 files), 143 unit and action tests,
 210 RLS tests, 4 end-to-end, 4 visual. The visual baselines are untouched.
 
 5. **The expiring paperwork rule.** A card on Today 30 days before a CDL,
@@ -78,6 +78,34 @@ never going to run a job and an end-to-end test failed for the wrong reason.
 It now answers 503 once the runner stops, and the process exits non-zero
 rather than lingering as something that answers requests but does no work.
 
+6. **Geocoding.** Saving a facility queues a worker job that looks the address
+   up with the US Census geocoder and stores the coordinates. A trigger queues
+   it; a job key coalesces a burst of saves into one run; a quarter-hourly
+   schedule catches rows saved while the worker was down. It never overwrites
+   a pin placed by hand, never looks up an address it has already resolved,
+   and never marks an address "not found" because the network failed.
+   Checked against the real geocoder: a facility whose address changed was
+   re-queued and placed at 35.0396, -89.9223.
+
+### What the FMCSA census file actually contains
+
+Checked on 26 November 2026 against the dataset itself
+(data.transportation.gov, `az4n-8mr2`):
+
+- **4,535,564 rows**, of which **2,248,264 are active** carriers.
+- Columns include `dot_number`, `legal_name`, `phy_street`, `phy_city`,
+  `phy_state`, `phy_zip`, `status_code`.
+- **There is no MC (docket) number in it.** The open question above is
+  answered: a DOT lookup can fill the name and address, and the MC has to stay
+  a typed field unless a second federal file is added, which would be a new
+  dependency and needs the owner's approval.
+- A single lookup by DOT number through the public Socrata API answers
+  instantly and needs no key.
+
+That leaves a decision the owner has to make, because the two answers have
+very different costs — mirroring the file daily as the spec describes, or
+looking a DOT number up live when someone types it.
+
 ### One thing the kit does not have
 
 **A form-level error line.** A field error has `Field error=`, but a problem
@@ -89,8 +117,8 @@ before the forms multiply.
 
 ### Next
 
-Geocoding, FMCSA DOT autofill, the spreadsheet import, uploads, the setup
-wizard and global search. The owner decided on 26 November 2026 to leave the
+The spreadsheet import, uploads, the setup wizard and global search. FMCSA
+DOT autofill waits on the owner's decision above. The owner decided on 26 November 2026 to leave the
 form-level error as it is.
 
 ### Waiting on the owner

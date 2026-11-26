@@ -2,6 +2,8 @@ import { createServer } from 'node:http';
 import { config as loadEnv } from 'dotenv';
 import { run, type Runner } from 'graphile-worker';
 import { connectionString } from './db';
+import { checkComplianceExpiry } from './tasks/check-compliance-expiry';
+import { geocodeFacilities } from './tasks/geocode-facilities';
 import { processEvent } from './tasks/process-event';
 import { sweepEvents } from './tasks/sweep-events';
 
@@ -25,17 +27,44 @@ async function main(): Promise<void> {
     taskList: {
       process_event: processEvent,
       sweep_events: sweepEvents,
+      check_compliance_expiry: checkComplianceExpiry,
+      geocode_facilities: geocodeFacilities,
     },
-    // Scheduled tasks replace cron (CLAUDE.md, rule 4).
-    crontab: '*/5 * * * * sweep_events',
+    // Scheduled tasks replace cron (CLAUDE.md, rule 4). The expiry check runs
+    // at 11:00 UTC: before the working day starts anywhere in the US, so a
+    // card about a medical card expiring this week is on Today when the
+    // office opens rather than halfway through the morning.
+    crontab: [
+      '*/5 * * * * sweep_events',
+      '0 11 * * * check_compliance_expiry',
+      // The trigger queues this the moment a facility is saved; the schedule
+      // is for rows saved while the worker was down.
+      '*/15 * * * * geocode_facilities',
+    ].join('\n'),
   });
 
   // Something has to be able to say "the worker is alive" — the health check
-  // its VPS and the end-to-end tests both wait on.
+  // its VPS and the end-to-end tests both wait on. It answers 503 the moment
+  // the runner stops, because a health endpoint that keeps saying "ok" after
+  // the worker has died is worse than none: the tests waited on it, and the
+  // jobs it promised to run were never going to run.
+  let consuming = true;
+
   const health = createServer((request, response) => {
     if (request.url?.startsWith('/health')) {
-      response.writeHead(200, { 'content-type': 'application/json' });
-      response.end(JSON.stringify({ status: 'ok', tasks: ['process_event', 'sweep_events'] }));
+      const status = consuming ? 200 : 503;
+      response.writeHead(status, { 'content-type': 'application/json' });
+      response.end(
+        JSON.stringify({
+          status: consuming ? 'ok' : 'stopped',
+          tasks: [
+            'process_event',
+            'sweep_events',
+            'check_compliance_expiry',
+            'geocode_facilities',
+          ],
+        }),
+      );
       return;
     }
     response.writeHead(404).end();
@@ -56,7 +85,21 @@ async function main(): Promise<void> {
   process.on('SIGINT', () => void stop('SIGINT'));
   process.on('SIGTERM', () => void stop('SIGTERM'));
 
-  await runner.promise;
+  try {
+    await runner.promise;
+  } finally {
+    consuming = false;
+    health.close();
+  }
+
+  if (!stopping) {
+    // The runner ended without being asked to: a database that went away, or
+    // a graphile_worker schema it refuses to run against. Say so and exit
+    // non-zero instead of lingering as a process that answers requests but
+    // does no work.
+    console.error('worker: the job runner stopped on its own');
+    process.exit(1);
+  }
 }
 
 main().catch((error: unknown) => {

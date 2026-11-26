@@ -9,7 +9,7 @@ export default async function Page() {
   return (
     <>
       <PageHeader title="Automation" subtitle="Each rule set to auto, suggest or off">
-        <SearchField />
+        <SearchField action="/search" />
       </PageHeader>
 
       <Panel>

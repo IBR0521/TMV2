@@ -9,7 +9,7 @@ export default async function Page() {
   return (
     <>
       <PageHeader title="Costs" subtitle="Expenses, fuel and IFTA">
-        <SearchField />
+        <SearchField action="/search" />
       </PageHeader>
 
       <Panel>

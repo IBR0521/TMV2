@@ -45,6 +45,8 @@ export type Carrier = {
   name: string;
   companyId: string;
   people: Record<Role, Person>;
+  /** Phase 2: the two driver rows in the fixture — the signed-in one and a colleague. */
+  fleet: { driverId: string; colleagueDriverId: string };
 };
 
 async function createAccount(admin: Db, email: string, name: string): Promise<void> {
@@ -118,9 +120,19 @@ export async function createCarrier(admin: Db, label: string): Promise<Carrier> 
     people[role] = { email: emails[role], role, db, userId: await profileId(db) };
   }
 
-  await fillEveryTenantTable(admin, ownerDb, companyId as string);
+  const fleet = await fillEveryTenantTable(admin, ownerDb, companyId as string);
 
-  return { name, companyId: companyId as string, people };
+  // From phase 2 a driver login points at a driver row, and the narrow driver
+  // policies key off that link. Without it those policies match nothing and a
+  // test that passes proves nothing.
+  const link = await admin
+    .from('memberships')
+    .update({ driver_id: fleet.driverId })
+    .eq('company_id', companyId as string)
+    .eq('user_id', people.driver.userId);
+  if (link.error) throw new Error(`link driver: ${link.error.message}`);
+
+  return { name, companyId: companyId as string, people, fleet };
 }
 
 /**
@@ -129,13 +141,42 @@ export async function createCarrier(admin: Db, label: string): Promise<Carrier> 
  * subscriptions, number_sequences, audit_log and invitations; these are the
  * rest. The worker writes suggestions in life, the admin client here.
  */
-async function fillEveryTenantTable(admin: Db, ownerDb: Db, companyId: string): Promise<void> {
+async function fillEveryTenantTable(
+  admin: Db,
+  ownerDb: Db,
+  companyId: string,
+): Promise<{ driverId: string; colleagueDriverId: string }> {
   const ping = await ownerDb
     .from('automation_test_pings')
     .insert({ company_id: companyId, note: 'fixture' })
     .select('id')
     .single();
   if (ping.error) throw new Error(`ping: ${ping.error.message}`);
+
+  // Phase 2. Two drivers and a customer go in first: the compliance documents
+  // and the contact hang off them with composite keys, so they need real ids.
+  // Two drivers, not one, because "a driver reads its own paperwork" is only
+  // proved by a colleague's row it must not reach.
+  const driver = await admin
+    .from('drivers')
+    .insert({ company_id: companyId, name: 'Fixture Driver' })
+    .select('id')
+    .single();
+  if (driver.error) throw new Error(`driver: ${driver.error.message}`);
+
+  const colleague = await admin
+    .from('drivers')
+    .insert({ company_id: companyId, name: 'Fixture Colleague' })
+    .select('id')
+    .single();
+  if (colleague.error) throw new Error(`colleague: ${colleague.error.message}`);
+
+  const customer = await admin
+    .from('customers')
+    .insert({ company_id: companyId, name: 'Fixture Broker' })
+    .select('id')
+    .single();
+  if (customer.error) throw new Error(`customer: ${customer.error.message}`);
 
   const rows = await Promise.all([
     admin.from('suggestions').insert({
@@ -161,11 +202,42 @@ async function fillEveryTenantTable(admin: Db, ownerDb: Db, companyId: string): 
       mime: 'application/pdf',
       size_bytes: 1024,
     }),
+    admin.from('trucks').insert({ company_id: companyId, unit_number: '900' }),
+    admin.from('trailers').insert({ company_id: companyId, unit_number: 'T900' }),
+    admin.from('facilities').insert({
+      company_id: companyId,
+      name: 'Fixture Dock',
+      address: '1 Main Street, Dallas, TX 75201',
+    }),
+    admin.from('compliance_documents').insert({
+      company_id: companyId,
+      driver_id: driver.data.id,
+      kind: 'cdl',
+      expires_on: '2027-06-30',
+    }),
+    admin.from('compliance_documents').insert({
+      company_id: companyId,
+      driver_id: colleague.data.id,
+      kind: 'medical',
+      expires_on: '2027-03-31',
+    }),
+    admin.from('customer_contacts').insert({
+      company_id: companyId,
+      customer_id: customer.data.id,
+      name: 'Fixture Contact',
+    }),
+    admin.from('import_mappings').insert({
+      company_id: companyId,
+      kind: 'trucks',
+      columns: { 'Unit #': 'unit_number' },
+    }),
   ]);
 
   for (const row of rows) {
     if (row.error) throw new Error(`fixture row: ${row.error.message}`);
   }
+
+  return { driverId: driver.data.id, colleagueDriverId: colleague.data.id };
 }
 
 /** Every table in public that carries a company_id: the RLS sweep's subjects. */

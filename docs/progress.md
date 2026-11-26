@@ -1,5 +1,227 @@
 # Progress
 
+## Phase 2 — Fleet and customers
+
+**Status: everything phase 2 asked for is built on branch `phase-2-fleet`,
+except two things waiting on the owner (below). Nothing is pushed and there is
+no pull request yet.**
+The plan was approved on 26 November 2026. Nothing is pushed and there is no
+pull request yet.
+
+### Done
+
+1. **Schema.** `drivers`, `trucks`, `trailers`, `compliance_documents`,
+   `customers`, `customer_contacts`, `facilities`, `import_mappings`, and the
+   global `fmcsa_carriers`. All applied from an empty database. The isolation
+   sweep found the eight tenant tables on its own: 210 RLS tests, up from 129.
+   The driver policies are tested rather than assumed — the fixture now ties a
+   driver login to a driver row, so a driver provably reads its own row and its
+   own paperwork, cannot change that paperwork, and sees nothing in the other
+   six tables.
+2. **Domain rules.** `src/domain/fleet.ts`, `customers.ts` and
+   `spreadsheet.ts`: expiry, labels, the tidying of VIN, phone, MC and email,
+   and the column matching the import needs. 58 new tests.
+3. **Services and actions.** `services/fleet.ts`, `customers.ts` and
+   `facilities.ts`, each taking ctx; `actions/fleet.ts`, `customers.ts` and
+   `facilities.ts`, thin wrappers whose schemas carry no company_id. The truck
+   limit lives in `src/domain/plan.ts` so it can be tested without a database:
+   no limit during the trial, an already-active truck does not count twice.
+4. **All seven screens**, from the patterns in design/KIT.md, assembled only
+   from `@/ui`: Drivers, the driver page, trucks and trailers in one list with
+   a toggle, the unit page, Customers, the customer page with its contacts,
+   and Facilities with the facility page. One compliance panel serves drivers,
+   trucks and trailers; one form each serves new and edit. Seeded demo fleet
+   and customer list for both carriers, with paperwork dated relative to the
+   day the seed runs so the expiry chips are alive.
+
+All green: typecheck, lint, UI guard (132 files), 169 unit and action tests,
+226 RLS tests, 10 end-to-end, 4 visual, production build. The visual baselines
+are untouched.
+
+5. **The expiring paperwork rule.** A card on Today 30 days before a CDL,
+   medical card, registration, insurance or inspection expires, and a second
+   at 7. The daily job raises an `events` row like any trigger, so the card is
+   produced by the same pipe; the rule itself is pure. The dedupe key carries
+   the threshold, and a document whose card already exists in any state is
+   skipped, so each window is raised once and a dismissed card does not come
+   back. Today is read in each carrier's own zone.
+
+   Checked against the real stack: the job raised exactly the five cards the
+   seeded paperwork deserves and none for the carrier with nothing due; a
+   second run with one card dismissed added no events and no cards.
+
+### What the screens deliberately do not show
+
+- **The customer scorecard** (pay speed, detention history) is read from
+  invoices and loads, so it waits for phases 3 and 5 — and "New load", the
+  primary action the spec gives the customer page, waits with it.
+- **The facility map.** A chip and the coordinates, not a map: the pin that
+  corrects a bad geocode is a later step and the basemap is still undecided.
+  A map that cannot be corrected would be worse than none.
+- **Which truck a driver is driving.** We know which truck they *own*;
+  assignment arrives with loads in phase 3, so the column says "Truck owned".
+
+### Two deliberate departures from the spec
+
+- **`compliance_documents` has no polymorphic `subject_id`.** The spec
+  describes subject_type plus subject_id; a polymorphic key can carry no
+  foreign key, and CLAUDE.md rule 1 requires composite keys between tenant
+  tables. So the subject is three nullable keys with "exactly one" enforced,
+  and `subject_type` and `subject_id` are generated from them. Reads look as
+  the spec says; a document cannot point at a row that does not exist.
+- **`import_mappings` is a table the spec's 37 do not include.** The import has
+  to remember each company's column choices and they need somewhere to live.
+
+### Defect found and fixed
+
+The worker's health endpoint went on answering "ok" after Graphile Worker had
+shut itself down over a schema change, so Playwright reused a worker that was
+never going to run a job and an end-to-end test failed for the wrong reason.
+It now answers 503 once the runner stops, and the process exits non-zero
+rather than lingering as something that answers requests but does no work.
+
+6. **Geocoding.** Saving a facility queues a worker job that looks the address
+   up with the US Census geocoder and stores the coordinates. A trigger queues
+   it; a job key coalesces a burst of saves into one run; a quarter-hourly
+   schedule catches rows saved while the worker was down. It never overwrites
+   a pin placed by hand, never looks up an address it has already resolved,
+   and never marks an address "not found" because the network failed.
+   Checked against the real geocoder: a facility whose address changed was
+   re-queued and placed at 35.0396, -89.9223.
+
+7. **The DOT number lookup.** Typing a USDOT number at signup and moving on
+   fills the carrier name from FMCSA's public data, with the address shown
+   underneath as proof it is the right carrier. Live rather than mirrored (see
+   below). It never overwrites a name already typed, and every failure falls
+   back to the manual form. Checked in the browser against the real service.
+
+8. **The spreadsheet import.** Trucks, drivers and customers from a carrier's
+   own export, with column matching, a preview and the company's choices
+   remembered. The file is read in the browser and never uploaded; the server
+   re-reads the cells with the same pure functions the preview used, so the
+   preview is honest and the server is still the authority. Nothing is ever
+   updated: a row already on the list is skipped and said so. A sheet that
+   would pass the plan's truck limit is refused whole.
+
+   `src/domain/csv.ts` is written rather than installed — quoted fields,
+   doubled quotes, the byte-order mark, CRLF — with fifteen tests.
+   `read-excel-file` (MIT, current, no advisories) reads .xlsx and is loaded
+   only when somebody opens one.
+
+   Checked in the browser with a 21-row export: 19 added, 1 already on the
+   list, 1 rejected for a short VIN, flagged on its own line beforehand.
+
+   **Rough edge:** the preview marks a row "Ready" even when that unit number
+   is already on the list; only the result afterwards says it was skipped. The
+   preview would have to read the existing list to know. Worth doing if it
+   bothers anyone.
+
+9. **Uploads.** A private `documents` bucket, isolated the way the tables are:
+   every object's path begins with the company id and the storage policies
+   only let a session touch its own company's folder. Ten new tests prove it —
+   cross-tenant write, read, list, delete and signed link all refused, drivers
+   locked out until phase 4, and a path that is not a company id refused
+   rather than raising.
+
+   The browser asks where to put a file, uploads there, then asks for the row,
+   so it never chooses its own path and the object is named with a uuid rather
+   than the carrier's own file name. Removing a document takes the compliance
+   row, the file row and the stored object together — checked end to end in
+   the browser. `files` became deletable to allow that; phase 1 had not
+   anticipated uploads.
+
+10. **The setup wizard.** Carrier, fleet, customers, team — every step after
+    the carrier skippable, the steps reusing the same importer and invite form
+    Settings uses. Today keeps the checklist, worked out from what is actually
+    in the company rather than a flag, so it disappears as the carrier fills
+    it in and never has to be dismissed.
+11. **Global search.** Drivers, trucks, trailers, customers and facilities,
+    scoped by company and proved so by six tests — including two carriers with
+    a driver of the same name. What a carrier types is text, not a pattern:
+    "%%" finds nothing. The box in all fourteen page headers submits to it,
+    and the results page shows the same box with what was typed still in it.
+
+### Phase 2 "done when", line by line
+
+- **A sample CSV of 20 trucks and 20 drivers imports in under 15 minutes from
+  a fresh signup, including the setup wizard.** Done, and covered by
+  `tests/e2e/import-a-fleet.spec.ts`: signup, carrier, both imports and both
+  fleet screens, in about two seconds of machine time.
+- **A DOT number from the census file fills the company form.** Done, live
+  rather than mirrored.
+- **A facility saved with an address shows on the map at the right place.**
+  Half done: it is geocoded and placed, and checked against the real service.
+  There is no map yet — that waits on the basemap decision.
+- **Documents expiring in 30 and 7 days produce one suggestion each, never
+  duplicates.** Done, and checked against the real stack twice over.
+- **RLS tests cover every new table.** Done; the sweep picks them up on its
+  own, and storage and search have tests of their own.
+- **Playwright covers the setup wizard.** Done, three tests.
+
+### Something missing that nobody has asked for yet
+
+**There is no way to sign out.** Phase 1 built sign-in and never built its
+opposite, and the kit's sidebar has no slot for it — the footer takes a
+company name and a plan label and nothing else. So this needs both a decision
+and, probably, a change to `src/ui`, which rule 7 says is the owner's to make.
+Worth doing before anyone outside this laptop sees the app.
+
+### What the FMCSA census file actually contains
+
+Checked on 26 November 2026 against the dataset itself
+(data.transportation.gov, `az4n-8mr2`):
+
+- **4,535,564 rows**, of which **2,248,264 are active** carriers.
+- Columns include `dot_number`, `legal_name`, `phy_street`, `phy_city`,
+  `phy_state`, `phy_zip`, `status_code`.
+- **There is no MC (docket) number in it.** The open question above is
+  answered: a DOT lookup can fill the name and address, and the MC has to stay
+  a typed field unless a second federal file is added, which would be a new
+  dependency and needs the owner's approval.
+- A single lookup by DOT number through the public Socrata API answers
+  instantly and needs no key.
+
+The owner chose on 26 November 2026 to look a DOT number up live rather than
+mirror the file: one public request when somebody types a number, nothing to
+store and nothing to keep fresh. **`fmcsa_carriers` is therefore unused.** It
+is still in the schema; dropping a table is destructive, so it waits for the
+owner's word.
+
+### Two things the kit did not have
+
+1. **A form-level error line.** A field error has `Field error=`, but a problem
+   about the whole form — "Your plan covers 5 active trucks" — has nowhere of
+   its own. It is shown on the first field, which is what the phase 1 invite
+   form does. The owner decided on 26 November 2026 to leave it.
+2. **A search box that can be submitted.** `SearchField` took no name and no
+   handler, so it could not be submitted. **Closed on 26 November 2026:** the
+   owner asked me to make the change, so `SearchField` now takes an optional
+   `action` and becomes a plain GET form when it is set. Without `action` it
+   renders exactly as before — which the four visual tests confirm against the
+   untouched baselines — so nothing that already used it changed.
+
+### Next
+
+Nothing in the phase 2 brief. What is left is the owner's: the basemap
+decision for the facility pin, whether to drop the now-unused
+`fmcsa_carriers` table, and whether to add a way to sign out. Then the pull
+request, and phase 3. The owner decided on 26 November 2026 to leave the
+form-level error as it is.
+
+### Waiting on the owner
+
+- **The basemap.** The facility map exists only so a pin can be dragged when
+  geocoding misses. Protomaps' planet file is 100–130GB; their hosted tiles
+  are free for non-commercial use and ask for sponsorship commercially. The
+  recommendation is a US extract at a capped zoom served from Supabase
+  Storage, measured before it is committed to; if it comes out too large, the
+  pin waits for phase 7 and phase 2 confirms addresses as text. No paid tile
+  service without asking.
+- **The MC number.** The FMCSA census file may not carry docket numbers. If it
+  does not, the DOT lookup fills name and address and the MC stays a typed
+  field — a second federal data source would be a new dependency and needs
+  approval.
+
 ## Phase 1 — Foundation
 
 **Status: built, verified, CI green, waiting for the owner's merge.** Branch

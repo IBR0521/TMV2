@@ -31,3 +31,14 @@ export const OFFICE_PATHS = [
 export function isOfficePath(pathname: string): boolean {
   return OFFICE_PATHS.some((prefix) => pathname === prefix || pathname.startsWith(prefix + '/'));
 }
+
+/** Paths that need an account, whether or not they are a menu section. */
+export function needsAccount(pathname: string): boolean {
+  if (isOfficePath(pathname)) return true;
+  // Setup is neither a menu section nor somewhere a stranger belongs: an owner
+  // part-way through it has an account but no company yet. Search is the same
+  // shape — inside the app, but not a section of the menu.
+  return ['/onboarding', '/search'].some(
+    (prefix) => pathname === prefix || pathname.startsWith(prefix + '/'),
+  );
+}

@@ -49,10 +49,16 @@ describe('every table with a company_id', () => {
   it('is covered by this sweep', () => {
     // A reminder that the count grows with every phase; if it ever shrinks,
     // a table lost its company_id.
-    expect(tables.length).toBeGreaterThanOrEqual(12);
+    expect(tables.length).toBeGreaterThanOrEqual(20);
     expect(tables).toContain('companies');
     expect(tables).toContain('memberships');
     expect(tables).toContain('suggestions');
+    // Phase 2's fleet and customers, swept without this file listing them.
+    expect(tables).toContain('drivers');
+    expect(tables).toContain('trucks');
+    expect(tables).toContain('customers');
+    expect(tables).toContain('facilities');
+    expect(tables).toContain('compliance_documents');
   });
 
   for (const table of tables) {

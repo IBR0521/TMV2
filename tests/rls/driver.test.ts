@@ -7,8 +7,9 @@ import { adminDb, createCarrier, type Carrier, type Db } from '../support/supaba
  * auth_company_ids() returns office memberships only, so the uniform tenant
  * policy never covers a driver. That is what makes a table added in a later
  * phase invisible to drivers until someone writes a driver policy for it on
- * purpose. In phase 1 a driver's whole world is its own company row, its own
- * profile and its own membership.
+ * purpose. A driver's whole world is its own company row, its own profile and
+ * membership, and — from phase 2 — its own driver row and its own expiring
+ * paperwork. Nothing else in the fleet, and nothing of a colleague's.
  */
 const admin: Db = adminDb();
 
@@ -49,12 +50,59 @@ describe('a driver', () => {
     'automation_settings',
     'automation_test_pings',
     'subscriptions',
+    // Phase 2's fleet and customers: a driver has no business in any of them.
+    'trucks',
+    'trailers',
+    'customers',
+    'customer_contacts',
+    'facilities',
+    'import_mappings',
   ] as const) {
     it(`sees nothing in ${table}`, async () => {
       const { data, error } = await carrier.people.driver.db.from(table).select('id');
       expect(error ? [] : (data ?? [])).toEqual([]);
     });
   }
+
+  it('reads its own driver row and no colleague’s', async () => {
+    const { data, error } = await carrier.people.driver.db.from('drivers').select('id, name');
+
+    expect(error).toBeNull();
+    expect(data).toHaveLength(1);
+    expect(data?.[0]?.id).toBe(carrier.fleet.driverId);
+  });
+
+  it('reads its own paperwork and no colleague’s', async () => {
+    const { data, error } = await carrier.people.driver.db
+      .from('compliance_documents')
+      .select('kind, driver_id');
+
+    expect(error).toBeNull();
+    expect(data).toHaveLength(1);
+    expect(data?.[0]?.kind).toBe('cdl');
+    expect(data?.[0]?.driver_id).toBe(carrier.fleet.driverId);
+  });
+
+  it('cannot change its own paperwork', async () => {
+    const before = await admin
+      .from('compliance_documents')
+      .select('expires_on')
+      .eq('driver_id', carrier.fleet.driverId)
+      .single();
+
+    await carrier.people.driver.db
+      .from('compliance_documents')
+      .update({ expires_on: '2030-01-01' })
+      .eq('driver_id', carrier.fleet.driverId);
+
+    const after = await admin
+      .from('compliance_documents')
+      .select('expires_on')
+      .eq('driver_id', carrier.fleet.driverId)
+      .single();
+
+    expect(after.data?.expires_on).toBe(before.data?.expires_on);
+  });
 
   it('cannot put anything into the automation pipe', async () => {
     const before = await admin

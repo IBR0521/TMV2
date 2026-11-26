@@ -9,6 +9,7 @@
  */
 import { config as loadEnv } from 'dotenv';
 import { clients, isLocal, provision, type DemoCompany } from './lib/provision';
+import { ALPHA_FLEET, BETA_FLEET, seedFleet, type FleetSeed } from './lib/demo-fleet';
 
 loadEnv({ path: ['.env.local', '.env'] });
 
@@ -49,12 +50,28 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  const fleets: Record<string, FleetSeed> = {
+    'Alpha Freight': ALPHA_FLEET,
+    'Beta Logistics': BETA_FLEET,
+  };
+
   for (const company of COMPANIES) {
     const { companyId, created } = await provision(c, company, PASSWORD);
     console.log(
       `seed: ${created ? 'created' : 'already there'} ${company.name} (${companyId}) ` +
         `with ${company.people.length} people`,
     );
+
+    const fleet = fleets[company.name];
+    if (fleet !== undefined) {
+      const { added } = await seedFleet(c, companyId, fleet);
+      console.log(
+        `seed: ${added ? 'added' : 'already there'} ${company.name} fleet — ` +
+          `${fleet.drivers.length} drivers, ${fleet.trucks.length} trucks, ` +
+          `${fleet.trailers.length} trailers, ${fleet.customers.length} customers, ` +
+          `${fleet.facilities.length} facilities`,
+      );
+    }
   }
 
   console.log(`seed: every demo account uses the password "${PASSWORD}"`);

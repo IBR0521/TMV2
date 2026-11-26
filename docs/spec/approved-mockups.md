@@ -1,5 +1,15 @@
 ## PART 7 — Approved mockups (described for building)
 
+> **The visual language here was superseded on 26 November 2026.** The owner
+> asked for the look and the layout to be reworked, so the colour names in
+> brackets ([primary], [warning], [surface]) describe the first draft, not what
+> ships. `design/README.md` and `design/tokens.json` are the current system:
+> amber is the one saturated colour, depth comes from surface steps rather than
+> outlines, and lists carry no dividers. What each screen *shows* — the fields,
+> the figures, the actions, the order — still stands and is what these
+> descriptions are for. Screens 2 to 4 will be re-drawn in the current system
+> when their phase builds them.
+
 The owner approved four screens on a design canvas. Two earlier styles were rejected: a generic card-heavy SaaS dashboard and a showy "premium automotive" page with a hero map. **The approved style is v1's navy-and-blue look, cleaned up: calm, practical, a work tool.** Build every screen in this style. Exact colors, type and spacing are in PART 8 (design tokens); token names are given in brackets below.
 
 ### Shared office layout

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Driver app, current stop (approved reference)</title>
+<style>
+@font-face{font-family:Geist;src:url(fonts/Geist-Variable.woff2) format('woff2');font-weight:100 900}
+@font-face{font-family:'Geist Mono';src:url(fonts/GeistMono-Variable.woff2) format('woff2');font-weight:100 900}
+body{margin:0;background:#05080F}
+a{color:#7FB0FF;text-decoration:none}a:hover{color:#A9CBFF}
+button{font-family:inherit}
+</style>
+</head>
+<body>
+<div style="width:390px;height:844px;box-sizing:border-box;background:#05080F;color:#F1F3F6;font-family:Geist, system-ui, sans-serif;font-size:15px;display:flex;flex-direction:column">
+
+<div style="display:flex;justify-content:space-between;align-items:center;padding:20px 20px 12px">
+<div style="font-size:16px;font-weight:600">Load #1041</div>
+<div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:#E5A13A;background:#2A1D0B;border:1px solid #5C3F14;border-radius:12px;padding:4px 10px"><span style="width:6px;height:6px;border-radius:3px;background:#E5A13A"></span>Offline · 2 waiting</div>
+</div>
+
+<div style="flex:1;overflow:hidden;padding:4px 20px 0;display:flex;flex-direction:column;gap:16px">
+<div style="font-size:13px;color:#8A94A6">Stop 2 of 2 · Delivery</div>
+
+<section aria-label="Current stop" style="border:1px solid #141B24;border-radius:14px;background:#070B14;padding:18px">
+<div style="font-size:20px;font-weight:600;line-height:1.25">Harbor Foods DC 12</div>
+<div style="color:#A3ACBB;margin-top:6px;line-height:1.4">4180 Fulton Industrial Blvd<br>Atlanta, GA 30336</div>
+<div style="display:flex;justify-content:space-between;margin-top:16px;padding-top:14px;border-top:1px solid #141B24;font-size:14px"><span style="color:#8A94A6">Appointment</span><span style="font-weight:500">Today 14:00–16:00</span></div>
+<div style="display:flex;justify-content:space-between;margin-top:10px;font-size:14px"><span style="color:#8A94A6">Reference</span><span style="font-weight:500">NL-883102</span></div>
+<div style="margin-top:14px;padding:12px;border-radius:10px;background:#0B111C;font-size:14px;line-height:1.45;color:#C9D1DC">Check in at gate 3. A lumper is usually needed: keep the receipt.</div>
+<a href="#" style="display:flex;align-items:center;justify-content:center;gap:8px;height:44px;margin-top:14px;border:1px solid #233047;border-radius:10px;color:#F1F3F6;font-size:15px;font-weight:500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 11l18-8-8 18-2-8z"></path></svg>Navigate</a>
+</section>
+
+<button style="height:60px;border-radius:14px;background:#1767D2;border:0;color:#FFFFFF;font-size:18px;font-weight:600">I've arrived</button>
+
+<section aria-label="Documents" style="border:1px solid #141B24;border-radius:14px;background:#070B14">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #141B24"><span>BOL</span><span style="font-size:13px;color:#8A94A6">Uploaded</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid #141B24"><span>POD</span><span style="font-size:13px;color:#8A94A6">After unloading</span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px"><span>Lumper receipt</span><span style="font-size:13px;color:#8A94A6">If you pay one</span></div>
+</section>
+</div>
+
+<nav aria-label="Driver" style="display:flex;border-top:1px solid #141B24;background:#070B14;padding:8px 8px 20px">
+<a href="#" aria-current="page" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;font-size:11px;color:#7FB0FF"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 7l9-4 9 4-9 4-9-4zM3 7v10l9 4 9-4V7"></path></svg>Loads</a>
+<a href="#" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;font-size:11px;color:#8A94A6"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>Capture</a>
+<a href="#" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;font-size:11px;color:#8A94A6"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 2v20M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>Pay</a>
+<a href="#" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0;font-size:11px;color:#8A94A6"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>Me</a>
+</nav>
+</div>
+</body>
+</html>

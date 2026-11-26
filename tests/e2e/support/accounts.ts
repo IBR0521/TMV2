@@ -24,7 +24,11 @@ export async function signIn(page: Page, email: string): Promise<void> {
   await page.getByRole('button', { name: 'Sign in' }).click();
 }
 
-/** Signs up an owner and sets its carrier up, landing on Today. */
+/**
+ * Signs up an owner, names the carrier and skips the rest of setup, landing
+ * on Today. The steps after the company are optional by design, so the helper
+ * most tests want is the shortest way through.
+ */
 export async function createCarrier(page: Page, label = 'E2E Freight'): Promise<string> {
   const owner = uniqueAccount('owner');
   await signUp(page, owner.email, owner.name);
@@ -32,7 +36,10 @@ export async function createCarrier(page: Page, label = 'E2E Freight'): Promise<
   await expect(page).toHaveURL(/\/onboarding$/);
   await page.getByLabel('Carrier name').fill(`${label} ${owner.tag}`);
   await page.getByLabel('MC number').fill('MC999999');
-  await page.getByRole('button', { name: 'Finish setup' }).click();
+  await page.getByRole('button', { name: 'Next: your fleet' }).click();
+
+  await expect(page).toHaveURL(/\/onboarding\/fleet$/);
+  await page.getByRole('link', { name: 'Skip the rest of setup' }).click();
 
   await expect(page).toHaveURL(/\/today$/);
   return owner.email;

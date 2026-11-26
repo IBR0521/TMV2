@@ -7,6 +7,7 @@ import { US_TIMEZONES } from '@/domain/facilities';
 import { useHydrated } from '@/client/use-hydrated';
 import { createCompany } from '@/server/actions/companies';
 import { lookUpCarrier } from '@/server/actions/fmcsa';
+import { Steps } from './steps';
 
 /**
  * Step two of signup: the carrier (docs/spec/flows.md, 1. Signup and setup).
@@ -83,14 +84,22 @@ export default function OnboardingPage() {
       return;
     }
 
-    router.replace('/today');
+    // On to the fleet. Every step after this one may be skipped, and Today
+    // keeps a checklist of whatever was.
+    router.replace('/onboarding/fleet');
     router.refresh();
   }
 
   return (
     <form method="post" onSubmit={save}>
+      <Steps
+        current="company"
+        title="Set up your carrier"
+        subtitle="Four short steps. Everything after this one can wait."
+      />
+
       <Panel>
-        <PanelHeader title="Set up your carrier" />
+        <PanelHeader title="Carrier details" />
         <FormGrid>
           <Field label="Carrier name" error={fieldErrors.name?.[0] ?? error ?? undefined}>
             <Input required value={name} onChange={(event) => setName(event.target.value)} />
@@ -123,7 +132,7 @@ export default function OnboardingPage() {
         </FormGrid>
         <FormActions>
           <Button type="submit" variant="primary" disabled={busy || !ready}>
-            {busy ? 'Saving' : 'Finish setup'}
+            {busy ? 'Saving' : 'Next: your fleet'}
           </Button>
         </FormActions>
       </Panel>

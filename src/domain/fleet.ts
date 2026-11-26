@@ -146,10 +146,15 @@ export function expiryOf(expiresOn: string | null, today: string): Expiry | null
   const state: ExpiryState =
     daysLeft < 0 ? 'expired' : daysLeft <= 7 ? 'critical' : daysLeft <= 30 ? 'soon' : 'ok';
 
-  return { daysLeft, state, label: expiryLabel(daysLeft) };
+  return { daysLeft, state, label: expiryWords(daysLeft) };
 }
 
-function expiryLabel(daysLeft: number): string {
+/**
+ * How long is left, in words. Exported because the daily expiry rule says the
+ * same thing on a Today card that the chip says on a screen, and the two must
+ * not drift apart.
+ */
+export function expiryWords(daysLeft: number): string {
   if (daysLeft < 0) {
     const days = Math.abs(daysLeft);
     return days === 1 ? 'Expired yesterday' : `Expired ${days} days ago`;

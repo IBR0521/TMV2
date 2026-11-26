@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "./cn";
+import { IconArrowDown, IconArrowUp, IconCheck } from "./icons";
 import { UiLink } from "./link";
 
 /** StatusChip: words carry the meaning; color only supports it. */
@@ -126,36 +127,133 @@ export function StopItem({
 }
 
 /** DataTable for list screens (Loads, Invoices, Drivers...). Put it inside a Panel. Money columns: align "right" + Amount. */
-export type Column<Row> = { key: string; header: string; align?: "left" | "right"; render: (row: Row) => ReactNode };
+export type Column<Row> = {
+  key: string;
+  header: string;
+  align?: "left" | "right";
+  render: (row: Row) => ReactNode;
+  /** When true and onSort is given, the header becomes a sort control. */
+  sortable?: boolean;
+};
 
-export function DataTable<Row>({ columns, rows, rowKey }: { columns: Column<Row>[]; rows: Row[]; rowKey: (row: Row) => string }) {
+export type Sort = { key: string; direction: "asc" | "desc" };
+
+/**
+ * Sorting and selection are optional: a table given none of those props renders
+ * exactly as it always did. The screen owns the state and passes handlers in,
+ * the way the wiring guide describes.
+ */
+export function DataTable<Row>({
+  columns,
+  rows,
+  rowKey,
+  sort,
+  onSort,
+  selected,
+  onSelect,
+  onSelectAll,
+}: {
+  columns: Column<Row>[];
+  rows: Row[];
+  rowKey: (row: Row) => string;
+  sort?: Sort;
+  onSort?: (key: string) => void;
+  /** Providing this adds the checkbox column. */
+  selected?: readonly string[];
+  onSelect?: (key: string) => void;
+  onSelectAll?: () => void;
+}) {
+  const selectable = selected !== undefined && onSelect !== undefined;
+  const allSelected = selectable && rows.length > 0 && rows.every((r) => selected.includes(rowKey(r)));
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse text-14">
         <thead>
           <tr>
+            {selectable ? (
+              <th className="w-10 pl-5 pr-0 py-3 border-b border-border text-left">
+                <Tick checked={allSelected} label="Select every row" onChange={onSelectAll} />
+              </th>
+            ) : null}
             {columns.map((c) => (
               <th
                 key={c.key}
+                aria-sort={sort?.key === c.key ? (sort.direction === "asc" ? "ascending" : "descending") : undefined}
                 className={cn("px-5 py-3 text-12 font-normal text-text-muted border-b border-border", c.align === "right" ? "text-right" : "text-left")}
               >
-                {c.header}
+                {c.sortable && onSort ? (
+                  <button
+                    type="button"
+                    onClick={() => onSort(c.key)}
+                    className={cn("inline-flex items-center gap-1 cursor-pointer bg-transparent border-0 p-0 text-12", sort?.key === c.key ? "text-text" : "text-text-muted")}
+                  >
+                    {c.header}
+                    {sort?.key === c.key ? (
+                      sort.direction === "asc" ? <IconArrowUp size={12} /> : <IconArrowDown size={12} />
+                    ) : null}
+                  </button>
+                ) : (
+                  c.header
+                )}
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {rows.map((r) => (
-            <tr key={rowKey(r)} className="hover:bg-surface-raised">
-              {columns.map((c) => (
-                <td key={c.key} className={cn("px-5 py-3.5 border-b border-border", c.align === "right" && "text-right")}>
-                  {c.render(r)}
-                </td>
-              ))}
-            </tr>
-          ))}
+          {rows.map((r) => {
+            const key = rowKey(r);
+            const isSelected = selectable && selected.includes(key);
+            return (
+              <tr key={key} className={cn(isSelected ? "bg-surface-raised" : "hover:bg-surface-raised")}>
+                {selectable ? (
+                  <td className="w-10 pl-5 pr-0 py-3.5 border-b border-border">
+                    <Tick checked={isSelected} label={`Select row ${key}`} onChange={() => onSelect(key)} />
+                  </td>
+                ) : null}
+                {columns.map((c) => (
+                  <td key={c.key} className={cn("px-5 py-3.5 border-b border-border", c.align === "right" && "text-right")}>
+                    {c.render(r)}
+                  </td>
+                ))}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+/** The checkbox used by DataTable. Square, hairline, primary when ticked. */
+function Tick({ checked, label, onChange }: { checked: boolean; label: string; onChange?: () => void }) {
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={checked}
+      aria-label={label}
+      onClick={onChange}
+      className={cn(
+        "size-4 rounded-sm border flex items-center justify-center cursor-pointer",
+        checked ? "bg-primary border-primary text-on-primary" : "bg-surface border-border-input text-transparent",
+      )}
+    >
+      <IconCheck size={11} />
+    </button>
+  );
+}
+
+/**
+ * The bar above a table while rows are selected: how many, and what can be
+ * done to them. The one primary button is the step the screen is for.
+ */
+export function SelectionBar({ count, children }: { count: number; children: ReactNode }) {
+  if (count === 0) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-3 px-5 py-3 border-b border-border bg-surface-raised text-13">
+      <span className="font-medium">{count} selected</span>
+      <div className="flex flex-wrap items-center gap-2">{children}</div>
     </div>
   );
 }

@@ -1,81 +1,71 @@
-import {
-  Amount,
-  Button,
-  type Column,
-  DataTable,
-  PageHeader,
-  Panel,
-  PanelHeader,
-  SearchField,
-  StatusChip,
-  TextLink,
-} from '@/ui';
+import { Button, Notice, PageHeader, SearchField, Tabs } from '@/ui';
 import { requireSection } from '@/server/guard';
-import { SAMPLE_LOADS, STATUS_LABEL, type SampleLoad } from './_sample';
+import { SAMPLE_LOADS, type SampleLoad } from './_sample';
+import { LoadsList } from './loads-list';
 
 export const metadata = { title: 'Loads' };
 
 /**
  * Every load with status, driver, rate and margin (docs/spec/screens.md, row 2).
  *
- * Phase 1 has no loads table, so these are the spec's sample figures and the
- * subtitle says so. Phase 3 replaces SAMPLE_LOADS with a query.
+ * Phase 1 has no loads table, so the rows are the spec's sample figures and the
+ * notice says so. Phase 3 replaces SAMPLE_LOADS with a query; the assembly does
+ * not change.
+ *
+ * Saved views are links rather than client state, so a view can be shared and
+ * the back button works.
  */
-const COLUMNS: Column<SampleLoad>[] = [
-  {
-    key: 'number',
-    header: 'Load',
-    render: (load) => <TextLink href={`/loads/${load.number}`}>#{load.number}</TextLink>,
-  },
-  {
-    key: 'status',
-    header: 'Status',
-    render: (load) =>
-      load.late ? (
-        <StatusChip tone="warning" dot>
-          Late
-        </StatusChip>
-      ) : (
-        <StatusChip tone={load.status === 'delivered' ? 'idle' : 'normal'}>
-          {STATUS_LABEL[load.status]}
-        </StatusChip>
-      ),
-  },
-  { key: 'customer', header: 'Customer', render: (load) => load.customer },
-  { key: 'lane', header: 'Lane', render: (load) => `${load.from} → ${load.to}` },
-  { key: 'pickup', header: 'Pickup', render: (load) => load.pickup },
+const VIEWS = [
+  { key: 'all', label: 'All', matches: () => true },
   {
     key: 'driver',
-    header: 'Driver',
-    render: (load) =>
-      load.driver ? `${load.unit} · ${load.driver}` : <span className="text-text-muted">Unassigned</span>,
+    label: 'Needs a driver',
+    matches: (load: SampleLoad) => load.driver === null && load.status !== 'draft',
   },
-  { key: 'miles', header: 'Miles', align: 'right', render: (load) => load.miles },
   {
-    key: 'rate',
-    header: 'Rate',
-    align: 'right',
-    render: (load) => <Amount cents={load.rateCents} decimals={false} />,
+    key: 'transit',
+    label: 'On the road',
+    matches: (load: SampleLoad) => load.status === 'in_transit' || load.status === 'dispatched',
+  },
+  {
+    key: 'billing',
+    label: 'Ready to bill',
+    matches: (load: SampleLoad) => load.status === 'delivered' && load.billed === 'ready',
   },
 ];
 
-export default async function LoadsPage() {
+export default async function LoadsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string }>;
+}) {
   await requireSection('loads');
+
+  const { view } = await searchParams;
+  const active = VIEWS.find((v) => v.key === view) ?? VIEWS[0]!;
+  const rows = SAMPLE_LOADS.filter((load) => active.matches(load));
 
   return (
     <>
-      <PageHeader
-        title="Loads"
-        subtitle={`${SAMPLE_LOADS.length} loads · sample data until phase 3`}
-      >
+      <PageHeader title="Loads" subtitle={`${SAMPLE_LOADS.length} loads`}>
         <SearchField />
         <Button variant="primary">New load</Button>
       </PageHeader>
 
-      <Panel label="Loads">
-        <PanelHeader title="All loads" count={SAMPLE_LOADS.length} />
-        <DataTable columns={COLUMNS} rows={SAMPLE_LOADS} rowKey={(load) => load.id} />
-      </Panel>
+      <Notice label="Sample">
+        These rows come from the spec, not the database. Loads is built in phase 3.
+      </Notice>
+
+      <Tabs
+        items={VIEWS.map((v) => ({
+          label: v.label,
+          href: v.key === 'all' ? '/loads' : `/loads?view=${v.key}`,
+          active: v.key === active.key,
+          count: SAMPLE_LOADS.filter((load) => v.matches(load)).length,
+        }))}
+      />
+
+      <LoadsList rows={rows} title={active.label} />
     </>
   );
 }

@@ -1,8 +1,10 @@
 import { redirect } from 'next/navigation';
 import { isOfficeRole } from '@/domain/roles';
+import { trialLabel } from '@/domain/trial';
 import { OfficeShell } from '@/client/office-shell';
 import { getContext } from '@/server/context';
 import { getCompany } from '@/server/services/companies';
+import { getEntitlements } from '@/server/services/entitlements';
 import { countOpen } from '@/server/services/suggestions';
 
 /**
@@ -15,13 +17,23 @@ export default async function OfficeLayout({ children }: { children: React.React
   if (!ctx) redirect('/login');
   if (!isOfficeRole(ctx.role)) redirect('/d');
 
-  const [company, openCount] = await Promise.all([getCompany(ctx), countOpen(ctx)]);
+  const [company, entitlements, openCount] = await Promise.all([
+    getCompany(ctx),
+    getEntitlements(ctx),
+    countOpen(ctx),
+  ]);
+
+  const planLabel =
+    entitlements.status === 'trialing'
+      ? trialLabel(entitlements.trialEndsAt, new Date())
+      : entitlements.plan;
 
   return (
     <OfficeShell
       role={ctx.role === 'driver' ? 'dispatcher' : ctx.role}
       companyName={company.name}
       todayCount={openCount}
+      planLabel={planLabel}
     >
       {children}
     </OfficeShell>

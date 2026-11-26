@@ -17,11 +17,13 @@ export function OfficeShell({
   role,
   companyName,
   todayCount,
+  planLabel,
   children,
 }: {
   role: Exclude<Role, 'driver'>;
   companyName: string;
   todayCount: number;
+  planLabel?: string;
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -32,6 +34,7 @@ export function OfficeShell({
       active={sectionForPath(pathname) ?? 'today'}
       companyName={companyName}
       todayCount={todayCount}
+      planLabel={planLabel}
     >
       {children}
     </AppShell>

@@ -3,6 +3,7 @@ import { cn } from "./cn";
 import { IconSearch } from "./icons";
 import { UiLink } from "./link";
 import { menuFor, ROLE_LABEL, type NavKey, type Role } from "./navigation";
+import { Wordmark } from "./wordmark";
 
 /** The office app frame: sidebar + content. Every office page renders inside it. */
 export function AppShell({
@@ -10,17 +11,20 @@ export function AppShell({
   active,
   companyName,
   todayCount,
+  planLabel,
   children,
 }: {
   role: Exclude<Role, "driver">;
   active: NavKey;
   companyName: string;
   todayCount?: number;
+  /** Shown under the role: "Trial · 14 days left". */
+  planLabel?: string;
   children: ReactNode;
 }) {
   return (
     <div className="min-h-screen bg-bg text-text font-sans text-14 flex flex-wrap">
-      <Sidebar role={role} active={active} companyName={companyName} todayCount={todayCount} />
+      <Sidebar role={role} active={active} companyName={companyName} todayCount={todayCount} planLabel={planLabel} />
       <main className="flex-[999_1_560px] min-w-0 px-9 pt-7 pb-12 box-border flex flex-col gap-6">{children}</main>
     </div>
   );
@@ -31,19 +35,18 @@ export function Sidebar({
   active,
   companyName,
   todayCount,
+  planLabel,
 }: {
   role: Exclude<Role, "driver">;
   active: NavKey;
   companyName: string;
   todayCount?: number;
+  planLabel?: string;
 }) {
   const items = menuFor(role);
   return (
     <nav aria-label="Main" className="flex-[1_1_220px] box-border bg-surface border-r border-border px-3 py-5 flex flex-col gap-0.5">
-      <div className="flex items-center gap-2.5 px-2.5 pt-0.5 pb-5.5">
-        <div className="size-6.5 rounded-md bg-primary flex items-center justify-center text-13 font-semibold text-on-primary">T</div>
-        <div className="text-16 font-semibold">TruckMates</div>
-      </div>
+      <Wordmark className="px-2.5 pt-0.5 pb-5.5" />
       {items.map((item) => {
         const isActive = item.key === active;
         const Icon = item.icon;
@@ -66,7 +69,7 @@ export function Sidebar({
       })}
       <div className="mt-auto pt-4 px-2.5 border-t border-border text-13">
         <div>{companyName}</div>
-        <div className="text-text-muted">{ROLE_LABEL[role]}</div>
+        <div className="text-text-muted">{planLabel ? `${ROLE_LABEL[role]} · ${planLabel}` : ROLE_LABEL[role]}</div>
       </div>
     </nav>
   );

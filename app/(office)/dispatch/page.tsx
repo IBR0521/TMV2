@@ -6,6 +6,7 @@ import {
   DateRange,
   LoadBlock,
   MainColumn,
+  Notice,
   PageHeader,
   Panel,
   PanelHeader,
@@ -31,11 +32,15 @@ export default async function DispatchPage() {
     <>
       <PageHeader
         title="Dispatch"
-        subtitle={`${BOARD_TRUCKS.length} trucks · ${UNASSIGNED.length} loads need a driver · sample data until phase 3`}
+        subtitle={`${BOARD_TRUCKS.length} trucks · ${UNASSIGNED.length} loads need a driver`}
       >
         <DateRange label="Nov 25 – Nov 28" />
         <Button variant="primary">New load</Button>
       </PageHeader>
+
+      <Notice label="Sample">
+        These rows come from the spec, not the database. The dispatch board is built in phase 3.
+      </Notice>
 
       <Columns gap="md">
         <SideColumn narrow>

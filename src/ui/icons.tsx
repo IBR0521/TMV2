@@ -45,5 +45,8 @@ export const IconSearch = (p: IconProps) => <Svg {...p}><circle cx="11" cy="11" 
 export const IconNavigate = (p: IconProps) => <Svg {...p}><path d="M3 11l18-8-8 18-2-8z" /></Svg>;
 export const IconCamera = (p: IconProps) => <Svg {...p}><path d="M4 8h3l2-3h6l2 3h3v11H4z" /><circle cx="12" cy="13" r="3.5" /></Svg>;
 export const IconUser = (p: IconProps) => <Svg {...p}><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></Svg>;
+export const IconArrowUp = (p: IconProps) => <Svg {...p}><path d="M12 19V5M6 11l6-6 6 6" /></Svg>;
+export const IconArrowDown = (p: IconProps) => <Svg {...p}><path d="M12 5v14M6 13l6 6 6-6" /></Svg>;
+export const IconCheck = (p: IconProps) => <Svg {...p}><path d="M4 12.5 9 17.5 20 6.5" /></Svg>;
 export const IconChevronLeft = (p: IconProps) => <Svg {...p}><path d="M15 6l-6 6 6 6" /></Svg>;
 export const IconChevronRight = (p: IconProps) => <Svg {...p}><path d="M9 6l6 6-6 6" /></Svg>;

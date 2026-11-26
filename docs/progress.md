@@ -33,7 +33,7 @@ pull request yet.
    and customer list for both carriers, with paperwork dated relative to the
    day the seed runs so the expiry chips are alive.
 
-All green: typecheck, lint, UI guard (116 files), 143 unit and action tests,
+All green: typecheck, lint, UI guard (118 files), 152 unit and action tests,
 210 RLS tests, 4 end-to-end, 4 visual. The visual baselines are untouched.
 
 5. **The expiring paperwork rule.** A card on Today 30 days before a CDL,
@@ -87,6 +87,20 @@ rather than lingering as something that answers requests but does no work.
    Checked against the real geocoder: a facility whose address changed was
    re-queued and placed at 35.0396, -89.9223.
 
+7. **The DOT number lookup.** Typing a USDOT number at signup and moving on
+   fills the carrier name from FMCSA's public data, with the address shown
+   underneath as proof it is the right carrier. Live rather than mirrored (see
+   below). It never overwrites a name already typed, and every failure falls
+   back to the manual form. Checked in the browser against the real service.
+
+### Something missing that nobody has asked for yet
+
+**There is no way to sign out.** Phase 1 built sign-in and never built its
+opposite, and the kit's sidebar has no slot for it — the footer takes a
+company name and a plan label and nothing else. So this needs both a decision
+and, probably, a change to `src/ui`, which rule 7 says is the owner's to make.
+Worth doing before anyone outside this laptop sees the app.
+
 ### What the FMCSA census file actually contains
 
 Checked on 26 November 2026 against the dataset itself
@@ -102,9 +116,11 @@ Checked on 26 November 2026 against the dataset itself
 - A single lookup by DOT number through the public Socrata API answers
   instantly and needs no key.
 
-That leaves a decision the owner has to make, because the two answers have
-very different costs — mirroring the file daily as the spec describes, or
-looking a DOT number up live when someone types it.
+The owner chose on 26 November 2026 to look a DOT number up live rather than
+mirror the file: one public request when somebody types a number, nothing to
+store and nothing to keep fresh. **`fmcsa_carriers` is therefore unused.** It
+is still in the schema; dropping a table is destructive, so it waits for the
+owner's word.
 
 ### One thing the kit does not have
 
@@ -117,8 +133,7 @@ before the forms multiply.
 
 ### Next
 
-The spreadsheet import, uploads, the setup wizard and global search. FMCSA
-DOT autofill waits on the owner's decision above. The owner decided on 26 November 2026 to leave the
+The spreadsheet import, uploads, the setup wizard and global search. The owner decided on 26 November 2026 to leave the
 form-level error as it is.
 
 ### Waiting on the owner

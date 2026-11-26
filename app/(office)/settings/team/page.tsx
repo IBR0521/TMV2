@@ -1,3 +1,4 @@
+import { Page } from '@/ui/app-frame';
 import { PageHeader } from '@/ui/page-header';
 import { Panel, PanelBody, PanelHeader, PanelRow } from '@/ui/panel';
 import { EmptyState } from '@/ui/empty-state';
@@ -19,7 +20,8 @@ export default async function TeamPage() {
   const [members, invitations] = await Promise.all([listTeam(ctx), listInvitations(ctx)]);
 
   return (
-    <div className="space-y-6">
+    <Page>
+      <div className="space-y-6">
       <PageHeader
         title="Users and roles"
         subline={`${members.length} ${members.length === 1 ? 'person' : 'people'}`}
@@ -58,6 +60,7 @@ export default async function TeamPage() {
           <PendingInvitations invitations={invitations} />
         )}
       </Panel>
-    </div>
+      </div>
+    </Page>
   );
 }

@@ -34,16 +34,8 @@ export function Sidebar({
   return (
     <nav
       aria-label="Sections"
-      className="flex shrink-0 flex-col gap-4 border-b border-border px-3 py-4 md:sticky md:top-0 md:h-screen md:w-[228px] md:border-r md:border-b-0"
+      className="flex shrink-0 flex-col gap-3 border-b border-border px-2 py-3 md:w-[216px] md:border-r md:border-b-0"
     >
-      <div className="flex items-center justify-between gap-3 px-2">
-        <Link href="/today" className="flex items-center gap-2.5">
-          <Mark />
-          <span className="text-body-strong">TruckMates</span>
-        </Link>
-        <span className="truncate text-label text-text-muted md:hidden">{companyName}</span>
-      </div>
-
       <ul
         data-testid="nav-sections"
         className="flex gap-1 overflow-x-auto md:flex-col md:space-y-0.5 md:overflow-x-visible"
@@ -72,8 +64,8 @@ export function Sidebar({
         </li>
       </ul>
 
-      <div className="mt-auto hidden px-2 md:block">
-        <p className="truncate text-body text-text-secondary">{companyName}</p>
+      <div className="mt-auto hidden px-2 pb-1 md:block">
+        <p className="truncate text-label text-text-muted">{companyName}</p>
         <p className="text-label text-text-faint">
           {roleLabel(role)} · {planLabel}
         </p>

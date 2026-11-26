@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { Page } from '@/ui/app-frame';
 import { PageHeader } from '@/ui/page-header';
 import { EmptyState } from '@/ui/empty-state';
 import { getContext } from '@/server/context';
@@ -33,7 +34,8 @@ export default async function TodayPage() {
   const [company, suggestions] = await Promise.all([getCompany(ctx), listOpen(ctx)]);
 
   return (
-    <div className="space-y-8">
+    <Page>
+      <div className="space-y-8">
       <PageHeader
         title="Today"
         subline={longDate(new Date(), company.timezone)}
@@ -61,6 +63,7 @@ export default async function TodayPage() {
       </section>
 
       <SuggestionsLive companyId={ctx.companyId} />
-    </div>
+      </div>
+    </Page>
   );
 }

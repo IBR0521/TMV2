@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
+import { Page } from '@/ui/app-frame';
 import { PageHeader } from '@/ui/page-header';
 import { Panel, PanelRow } from '@/ui/panel';
 import { ICON_STROKE } from '@/ui/icons';
@@ -22,7 +23,8 @@ export default async function SettingsPage() {
   const screens = SCREENS.filter((screen) => !screen.ownerOnly || canManageTeam(ctx.role));
 
   return (
-    <div className="space-y-6">
+    <Page>
+      <div className="space-y-6">
       <PageHeader title="Settings" subline={`Signed in as ${ctx.email}`} />
       <Panel>
         {screens.map((screen) => (
@@ -37,6 +39,7 @@ export default async function SettingsPage() {
           </PanelRow>
         ))}
       </Panel>
-    </div>
+      </div>
+    </Page>
   );
 }

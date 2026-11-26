@@ -138,6 +138,41 @@ hides below `md`), and Today has no summary figures or fleet column because
 loads and trucks do not exist until phases 2 and 3 — the design preview shows
 them with sample data, the real screen cannot.
 
+### The application frame, 26 November 2026
+
+Four attempts at the look all failed for the same reason: each one was a single
+column with a list of six rows on it. That is a widget, not an application.
+Dispatch work is a table you sort and select from, a view for the question you
+are asking, a detail that opens beside the list, and a board you assign on.
+None of that existed.
+
+What is there now:
+
+- **A real frame.** `src/ui/app-frame.tsx`: a top bar that belongs to the
+  account (mark, carrier, global search with its shortcut, help, avatar), a
+  216px rail that belongs to the carrier, and a workspace that belongs to the
+  screen. On a desktop the frame is fixed and the workspace scrolls inside it;
+  on a phone the page scrolls and the rail becomes a row.
+- **Table primitives** (`src/ui/table.tsx`): sticky header, sortable columns
+  with direction carets, checkbox selection, a selection bar that names what
+  will happen to the rows, and figures that line up down the right.
+- **A detail pane** (`src/ui/detail-panel.tsx`) that opens beside the list
+  rather than replacing it, and covers the screen only on a phone.
+- **Status pills, filter chips, saved-view tabs and a route strip** — the
+  stops of a load as a line with progress, which answers "where is it and will
+  it make the appointment" without needing the map that arrives in phase 7.
+- **Loads** (`/loads`): twelve rows, five saved views with counts, a late
+  filter, six sortable columns, selection with bulk actions, and the detail
+  pane with route, assignment, money per mile, documents and timeline.
+- **Dispatch** (`/dispatch`): the board — six trucks down the side, four days
+  across, blocks spanning days in the state colours, a legend, and the loads
+  with nobody on them in a rail beside it.
+
+Loads and Dispatch carry the spec's own sample figures and say so in a notice
+at the top of the screen, because phase 1 has no loads table. The structure,
+the views, the sorting, the selection and the detail pane are real; phase 3
+swaps the data underneath and the screens do not change.
+
 ### Decisions taken while building
 
 1. **TypeScript 5.9.3, not 7.0.2.** 7.0.2 is the current stable, but

@@ -1,3 +1,4 @@
+import { Page } from './app-frame';
 import { Panel, PanelHeader } from './panel';
 import { EmptyState } from './empty-state';
 import { PageHeader } from './page-header';
@@ -18,12 +19,14 @@ export function PlaceholderPage({
   arrives: string;
 }) {
   return (
-    <div className="space-y-6">
-      <PageHeader title={title} subline={subline} />
-      <Panel>
-        <PanelHeader title={panelTitle} />
-        <EmptyState title="Nothing here yet" detail={arrives} />
-      </Panel>
-    </div>
+    <Page>
+      <div className="space-y-6">
+        <PageHeader title={title} subline={subline} />
+        <Panel>
+          <PanelHeader title={panelTitle} />
+          <EmptyState title="Nothing here yet" detail={arrives} />
+        </Panel>
+      </div>
+    </Page>
   );
 }

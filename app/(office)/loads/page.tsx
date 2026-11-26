@@ -48,7 +48,7 @@ export default async function LoadsPage({
   return (
     <>
       <PageHeader title="Loads" subtitle={`${SAMPLE_LOADS.length} loads`}>
-        <SearchField />
+        <SearchField action="/search" />
         <Button variant="primary">New load</Button>
       </PageHeader>
 

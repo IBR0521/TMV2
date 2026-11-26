@@ -9,7 +9,7 @@ export default async function Page() {
   return (
     <>
       <PageHeader title="Billing" subtitle="Invoices, payments and factoring">
-        <SearchField />
+        <SearchField action="/search" />
       </PageHeader>
 
       <Panel>

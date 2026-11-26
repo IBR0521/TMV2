@@ -1,21 +1,26 @@
-import { EmptyState, PageHeader, Panel, PanelHeader, SearchField } from '@/ui';
+import { PageHeader } from '@/ui';
 import { requireSection } from '@/server/guard';
+import { Importer } from './importer';
 
 export const metadata = { title: 'Import and export' };
 
-export default async function Page() {
+/**
+ * Import and export (docs/spec/screens.md, row 29). Phase 2 builds the import
+ * half: trucks, drivers and customers from a carrier's own spreadsheet.
+ * Exports — CSV and QuickBooks — need invoices and settlements, so they come
+ * with phases 5 and 6.
+ */
+export default async function ImportPage() {
   await requireSection('settings');
 
   return (
     <>
-      <PageHeader title="Import and export" subtitle="Spreadsheet import, CSV and QuickBooks exports">
-        <SearchField />
-      </PageHeader>
+      <PageHeader
+        title="Import"
+        subtitle="Bring trucks, drivers and customers in from a spreadsheet you already have."
+      />
 
-      <Panel>
-        <PanelHeader title="Import" />
-        <EmptyState title="Nothing here yet" hint="Import and export arrive in phase 2." />
-      </Panel>
+      <Importer />
     </>
   );
 }

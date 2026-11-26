@@ -115,16 +115,39 @@ export function Breadcrumb({ items }: { items: Array<{ label: string; href?: str
   );
 }
 
-export function SearchField({ placeholder = "Search loads, drivers, invoices" }: { placeholder?: string }) {
-  return (
+export function SearchField({
+  placeholder = "Search loads, drivers, invoices",
+  action,
+  name = "q",
+  defaultValue,
+}: {
+  placeholder?: string;
+  /** Set it to a path and the field becomes a GET form that posts there. */
+  action?: string;
+  name?: string;
+  defaultValue?: string;
+}) {
+  const field = (
     <label className="flex-[0_1_320px] flex items-center gap-2 h-9.5 px-3 border border-border-input rounded-md bg-surface">
       <IconSearch size={15} className="text-text-muted" />
       <input
         aria-label="Search"
+        name={action ? name : undefined}
+        defaultValue={defaultValue}
         placeholder={placeholder}
         className="flex-1 min-w-0 bg-transparent border-0 outline-none text-14 text-text placeholder:text-text-muted"
       />
     </label>
+  );
+
+  if (!action) return field;
+
+  // `contents` keeps the form out of the flex row, so the label's own basis
+  // still decides the width. A plain GET form, so it works before hydration.
+  return (
+    <form method="get" action={action} role="search" className="contents">
+      {field}
+    </form>
   );
 }
 

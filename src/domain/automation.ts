@@ -23,9 +23,9 @@ export type AutomationRule = {
 };
 
 /**
- * Phase 1 has one rule, and it exists to prove the pipe end to end:
- * trigger -> events row -> worker job -> suggestion -> Today, live.
- * Phase 3 adds the real load rules.
+ * Phase 1's rule exists to prove the pipe end to end: trigger -> events row ->
+ * worker job -> suggestion -> Today, live. Phase 2 adds the first rule a
+ * carrier actually cares about. Phase 3 adds the load rules.
  */
 export const AUTOMATION_RULES: readonly AutomationRule[] = [
   {
@@ -33,6 +33,15 @@ export const AUTOMATION_RULES: readonly AutomationRule[] = [
     event: 'test.ping',
     label: 'Test event',
     description: 'Puts a card on Today so the automation pipe can be checked.',
+    defaultMode: 'suggest',
+  },
+  {
+    key: 'compliance.expiring.alert',
+    event: 'compliance.expiring',
+    label: 'Expiring paperwork',
+    description:
+      'A card 30 days before a CDL, medical card, registration, insurance or '
+      + 'inspection expires, and again at 7 days.',
     defaultMode: 'suggest',
   },
 ];

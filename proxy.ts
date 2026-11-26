@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import { isOfficePath } from '@/nav';
+import { needsAccount } from '@/nav';
 
 /**
  * Next.js 16 calls this a proxy; it is the old middleware.
@@ -40,7 +40,7 @@ export default async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  if (!user && isOfficePath(pathname)) {
+  if (!user && needsAccount(pathname)) {
     const login = request.nextUrl.clone();
     login.pathname = '/login';
     login.search = `?next=${encodeURIComponent(pathname)}`;

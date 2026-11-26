@@ -1,12 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { AuthCard, FormError } from '@/ui/auth-card';
-import { Button } from '@/ui/button';
-import { useHydrated } from '@/ui/use-hydrated';
-import { Field, TextInput } from '@/ui/field';
+import { Button, Field, FormActions, FormGrid, Input, Panel, PanelHeader, TextLink } from '@/ui';
+import { useHydrated } from '@/client/use-hydrated';
 import { browserDb } from '@/server/db/browser';
 
 export function LoginForm({ next }: { next: string }) {
@@ -34,48 +31,36 @@ export function LoginForm({ next }: { next: string }) {
   }
 
   return (
-    <AuthCard
-      title="Sign in"
-      footer={
-        <>
-          New carrier?{' '}
-          <Link href="/signup" className="text-link hover:underline">
-            Create an account
-          </Link>
-        </>
-      }
-    >
-      <form method="post" onSubmit={signIn} className="space-y-4">
-        <FormError message={error} />
-        <Field label="Email">
-          <TextInput
-            type="email"
-            name="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </Field>
-        <Field label="Password">
-          <TextInput
-            type="password"
-            name="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </Field>
-        <div className="flex items-center justify-between gap-3">
-          <Link href="/forgot-password" className="text-label text-link hover:underline">
-            Forgot your password?
-          </Link>
+    <form method="post" onSubmit={signIn}>
+      <Panel>
+        <PanelHeader title="Sign in" />
+        <FormGrid columns={1}>
+          <Field label="Email" error={error ?? undefined}>
+            <Input
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+          </Field>
+          <Field label="Password">
+            <Input
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+          </Field>
+        </FormGrid>
+        <FormActions>
+          <TextLink href="/forgot-password">Forgot your password?</TextLink>
           <Button type="submit" variant="primary" disabled={busy || !ready}>
-            {busy ? 'Signing in…' : 'Sign in'}
+            {busy ? 'Signing in' : 'Sign in'}
           </Button>
-        </div>
-      </form>
-    </AuthCard>
+        </FormActions>
+      </Panel>
+    </form>
   );
 }

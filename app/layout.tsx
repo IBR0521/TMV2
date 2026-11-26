@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: { default: 'TruckMates', template: '%s · TruckMates' },
   description: 'Dispatch, billing and driver pay for carriers with 5 to 50 trucks.',
   applicationName: 'TruckMates',
+  manifest: '/manifest.webmanifest',
 };
 
 export const viewport: Viewport = {

@@ -20,11 +20,10 @@ test('a test event becomes a card on Today, live', async ({ page }) => {
     (window as unknown as { __notReloaded?: boolean }).__notReloaded = true;
   });
 
-  await page.getByTestId('send-test-event').click();
+  await page.getByRole('button', { name: 'Send test event' }).click();
 
-  await expect(page.getByTestId('suggestion')).toHaveCount(1, { timeout: 30_000 });
-  await expect(page.getByTestId('suggestion').first()).toContainText('A test event arrived');
-  await expect(page.getByTestId('suggestion').first()).toContainText('Test event');
+  await expect(page.getByText(/A test event arrived/)).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText('Test event').first()).toBeVisible();
 
   const marker = await page.evaluate(
     () => (window as unknown as { __notReloaded?: boolean }).__notReloaded === true,

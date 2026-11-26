@@ -2,10 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AuthCard, FormError } from '@/ui/auth-card';
-import { Button } from '@/ui/button';
-import { useHydrated } from '@/ui/use-hydrated';
-import { Field, Select, TextInput } from '@/ui/field';
+import { Button, Field, FormActions, FormGrid, Input, Panel, PanelHeader, Select } from '@/ui';
+import { useHydrated } from '@/client/use-hydrated';
 import { createCompany } from '@/server/actions/companies';
 
 /**
@@ -53,33 +51,35 @@ export default function OnboardingPage() {
   }
 
   return (
-    <AuthCard title="Set up your carrier" subline="You can change any of this later in Settings.">
-      <form method="post" onSubmit={save} className="space-y-4">
-        <FormError message={error} />
-        <Field label="Carrier name" error={fieldErrors.name?.[0]}>
-          <TextInput name="name" required value={name} onChange={(e) => setName(e.target.value)} />
-        </Field>
-        <div className="grid grid-cols-2 gap-3">
+    <form method="post" onSubmit={save}>
+      <Panel>
+        <PanelHeader title="Set up your carrier" />
+        <FormGrid>
+          <Field label="Carrier name" error={fieldErrors.name?.[0] ?? error ?? undefined}>
+            <Input required value={name} onChange={(event) => setName(event.target.value)} />
+          </Field>
+          <Field label="Time zone" hint="Used for appointment times and pay weeks.">
+            <Select value={timezone} onChange={(event) => setTimezone(event.target.value)}>
+              {TIME_ZONES.map((zone) => (
+                <option key={zone} value={zone}>
+                  {zone}
+                </option>
+              ))}
+            </Select>
+          </Field>
           <Field label="MC number" hint="Optional">
-            <TextInput name="mcNumber" value={mcNumber} onChange={(e) => setMcNumber(e.target.value)} />
+            <Input value={mcNumber} onChange={(event) => setMcNumber(event.target.value)} />
           </Field>
           <Field label="DOT number" hint="Optional">
-            <TextInput name="dotNumber" value={dotNumber} onChange={(e) => setDotNumber(e.target.value)} />
+            <Input value={dotNumber} onChange={(event) => setDotNumber(event.target.value)} />
           </Field>
-        </div>
-        <Field label="Time zone" hint="Used for appointment times and pay weeks.">
-          <Select name="timezone" value={timezone} onChange={(e) => setTimezone(e.target.value)}>
-            {TIME_ZONES.map((zone) => (
-              <option key={zone} value={zone}>
-                {zone.split('/')[1]?.replace(/_/g, ' ')} · {zone}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <Button type="submit" variant="primary" disabled={busy || !ready} className="w-full">
-          {busy ? 'Saving…' : 'Finish setup'}
-        </Button>
-      </form>
-    </AuthCard>
+        </FormGrid>
+        <FormActions>
+          <Button type="submit" variant="primary" disabled={busy || !ready}>
+            {busy ? 'Saving' : 'Finish setup'}
+          </Button>
+        </FormActions>
+      </Panel>
+    </form>
   );
 }

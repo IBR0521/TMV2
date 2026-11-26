@@ -1,11 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { AuthCard, FormError } from '@/ui/auth-card';
-import { Button } from '@/ui/button';
-import { useHydrated } from '@/ui/use-hydrated';
-import { Field, TextInput } from '@/ui/field';
+import {
+  Button,
+  EmptyState,
+  Field,
+  FormActions,
+  FormGrid,
+  Input,
+  Panel,
+  PanelHeader,
+  TextLink,
+} from '@/ui';
+import { useHydrated } from '@/client/use-hydrated';
 import { browserDb } from '@/server/db/browser';
 
 export default function ForgotPasswordPage() {
@@ -34,32 +41,38 @@ export default function ForgotPasswordPage() {
 
   if (sent) {
     return (
-      <AuthCard title="Check your email" subline={`If ${email} has an account, a reset link is on its way.`}>
-        <Link href="/login" className="text-label text-link hover:underline">
-          Back to sign in
-        </Link>
-      </AuthCard>
+      <Panel>
+        <PanelHeader title="Check your email" />
+        <EmptyState
+          title={`If ${email} has an account, a reset link is on its way`}
+          action={<Button href="/login">Back to sign in</Button>}
+        />
+      </Panel>
     );
   }
 
   return (
-    <AuthCard title="Reset your password" subline="We will email you a link.">
-      <form method="post" onSubmit={send} className="space-y-4">
-        <FormError message={error} />
-        <Field label="Email">
-          <TextInput
-            type="email"
-            name="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </Field>
-        <Button type="submit" variant="primary" disabled={busy || !ready} className="w-full">
-          {busy ? 'Sending…' : 'Send reset link'}
-        </Button>
-      </form>
-    </AuthCard>
+    <form method="post" onSubmit={send}>
+      <Panel>
+        <PanelHeader title="Reset your password" />
+        <FormGrid columns={1}>
+          <Field label="Email" hint="We will email you a link." error={error ?? undefined}>
+            <Input
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+          </Field>
+        </FormGrid>
+        <FormActions>
+          <TextLink href="/login">Back to sign in</TextLink>
+          <Button type="submit" variant="primary" disabled={busy || !ready}>
+            {busy ? 'Sending' : 'Send reset link'}
+          </Button>
+        </FormActions>
+      </Panel>
+    </form>
   );
 }

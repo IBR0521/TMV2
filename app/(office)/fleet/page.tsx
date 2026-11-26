@@ -1,16 +1,21 @@
-import { PlaceholderPage } from '@/ui/placeholder-page';
+import { EmptyState, PageHeader, Panel, PanelHeader, SearchField } from '@/ui';
 import { requireSection } from '@/server/guard';
 
 export const metadata = { title: 'Fleet' };
 
 export default async function Page() {
   await requireSection('fleet');
+
   return (
-    <PlaceholderPage
-      title="Fleet"
-      subline="Drivers, trucks, trailers and what is due"
-      panelTitle="Drivers"
-      arrives="Fleet and customers arrive in phase 2."
-    />
+    <>
+      <PageHeader title="Fleet" subtitle="Drivers, trucks, trailers and what is due">
+        <SearchField />
+      </PageHeader>
+
+      <Panel>
+        <PanelHeader title="Drivers" />
+        <EmptyState title="Nothing here yet" hint="Fleet and customers arrive in phase 2." />
+      </Panel>
+    </>
   );
 }

@@ -2,10 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AuthCard, FormError } from '@/ui/auth-card';
-import { Button } from '@/ui/button';
-import { useHydrated } from '@/ui/use-hydrated';
-import { Field, TextInput } from '@/ui/field';
+import { Button, Field, FormActions, FormGrid, Input, Panel, PanelHeader } from '@/ui';
+import { useHydrated } from '@/client/use-hydrated';
 import { browserDb } from '@/server/db/browser';
 
 /**
@@ -37,24 +35,27 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <AuthCard title="Choose a new password">
-      <form method="post" onSubmit={save} className="space-y-4">
-        <FormError message={error} />
-        <Field label="New password" hint="At least 8 characters.">
-          <TextInput
-            type="password"
-            name="password"
-            autoComplete="new-password"
-            minLength={8}
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </Field>
-        <Button type="submit" variant="primary" disabled={busy || !ready} className="w-full">
-          {busy ? 'Saving…' : 'Save password'}
-        </Button>
-      </form>
-    </AuthCard>
+    <form method="post" onSubmit={save}>
+      <Panel>
+        <PanelHeader title="Choose a new password" />
+        <FormGrid columns={1}>
+          <Field label="New password" hint="At least 8 characters." error={error ?? undefined}>
+            <Input
+              type="password"
+              autoComplete="new-password"
+              minLength={8}
+              required
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+          </Field>
+        </FormGrid>
+        <FormActions>
+          <Button type="submit" variant="primary" disabled={busy || !ready}>
+            {busy ? 'Saving' : 'Save password'}
+          </Button>
+        </FormActions>
+      </Panel>
+    </form>
   );
 }

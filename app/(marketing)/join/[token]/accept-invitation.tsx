@@ -2,12 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FormError } from '@/ui/auth-card';
-import { Button } from '@/ui/button';
-import { useHydrated } from '@/ui/use-hydrated';
+import { Button, EmptyState } from '@/ui';
+import { useHydrated } from '@/client/use-hydrated';
 import { acceptInvitation } from '@/server/actions/team';
 
-export function AcceptInvitation({ token }: { token: string }) {
+export function AcceptInvitation({ token, email }: { token: string; email: string }) {
   const router = useRouter();
   const ready = useHydrated();
   const [error, setError] = useState<string | null>(null);
@@ -29,11 +28,14 @@ export function AcceptInvitation({ token }: { token: string }) {
   }
 
   return (
-    <div className="space-y-4">
-      <FormError message={error} />
-      <Button variant="primary" onClick={accept} disabled={busy || !ready} className="w-full">
-        {busy ? 'Joining…' : 'Accept invitation'}
-      </Button>
-    </div>
+    <EmptyState
+      title={error ?? `Signed in as ${email}`}
+      hint={error ? undefined : 'Accepting adds you to the carrier that invited you.'}
+      action={
+        <Button variant="primary" disabled={busy || !ready} onClick={accept}>
+          {busy ? 'Joining' : 'Accept invitation'}
+        </Button>
+      }
+    />
   );
 }

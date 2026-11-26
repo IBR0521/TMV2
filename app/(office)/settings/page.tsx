@@ -1,9 +1,4 @@
-import Link from 'next/link';
-import { ChevronRight } from 'lucide-react';
-import { Page } from '@/ui/app-frame';
-import { PageHeader } from '@/ui/page-header';
-import { Panel, PanelRow } from '@/ui/panel';
-import { ICON_STROKE } from '@/ui/icons';
+import { Button, ListRow, PageHeader, Panel, PanelHeader } from '@/ui';
 import { canManageTeam } from '@/domain/roles';
 import { requireSection } from '@/server/guard';
 
@@ -23,23 +18,24 @@ export default async function SettingsPage() {
   const screens = SCREENS.filter((screen) => !screen.ownerOnly || canManageTeam(ctx.role));
 
   return (
-    <Page>
-      <div className="space-y-6">
-      <PageHeader title="Settings" subline={`Signed in as ${ctx.email}`} />
-      <Panel>
+    <>
+      <PageHeader title="Settings" subtitle={`Signed in as ${ctx.email}`} />
+
+      <Panel label="Settings">
+        <PanelHeader title="Carrier settings" count={screens.length} />
         {screens.map((screen) => (
-          <PanelRow key={screen.href}>
-            <div className="min-w-0">
-              <Link href={screen.href} className="text-body-strong hover:text-link">
-                {screen.label}
-              </Link>
-              <p className="text-label text-text-muted">{screen.detail}</p>
-            </div>
-            <ChevronRight size={16} strokeWidth={ICON_STROKE} className="text-text-muted" aria-hidden />
-          </PanelRow>
+          <ListRow
+            key={screen.href}
+            label={screen.label}
+            title={screen.detail}
+            action={
+              <Button size="sm" href={screen.href}>
+                Open
+              </Button>
+            }
+          />
         ))}
       </Panel>
-      </div>
-    </Page>
+    </>
   );
 }

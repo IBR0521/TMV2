@@ -13,9 +13,9 @@ test('an owner signs up, invites a dispatcher, and the dispatcher sees five sect
 
   await createCarrier(ownerPage);
 
-  // The owner sees all nine sections, plus Settings on its own.
-  await expect(ownerPage.getByTestId('nav-sections').getByRole('link')).toHaveCount(9);
-  await expect(ownerPage.getByTestId('nav-settings').getByRole('link')).toHaveCount(1);
+  // The owner sees all nine sections plus Settings (src/ui/navigation.ts).
+  const ownerMenu = ownerPage.getByRole('navigation', { name: 'Main' });
+  await expect(ownerMenu.getByRole('link')).toHaveCount(10);
 
   const dispatcher = uniqueAccount('dispatcher');
 
@@ -24,9 +24,10 @@ test('an owner signs up, invites a dispatcher, and the dispatcher sees five sect
   await ownerPage.getByLabel('Role').selectOption('dispatcher');
   await ownerPage.getByRole('button', { name: 'Invite' }).click();
 
-  const link = ownerPage.getByTestId('invite-link').first();
-  await expect(link).toBeVisible();
-  const inviteUrl = (await link.innerText()).trim();
+  // The invitation link is shown in its row, so it can be copied by hand too.
+  const row = ownerPage.getByText(/\/join\//).first();
+  await expect(row).toBeVisible();
+  const inviteUrl = (await row.innerText()).split(' · ').pop()!.trim();
   expect(inviteUrl).toContain('/join/');
 
   // A second browser, so the dispatcher is genuinely a different session.
@@ -40,9 +41,10 @@ test('an owner signs up, invites a dispatcher, and the dispatcher sees five sect
   await dispatcherPage.getByRole('button', { name: 'Accept invitation' }).click();
 
   await expect(dispatcherPage).toHaveURL(/\/today$/);
-  await expect(dispatcherPage.getByTestId('nav-sections').getByRole('link')).toHaveCount(5);
-  await expect(dispatcherPage.getByTestId('nav-sections')).toContainText('Dispatch');
-  await expect(dispatcherPage.getByTestId('nav-sections')).not.toContainText('Billing');
+  const dispatcherMenu = dispatcherPage.getByRole('navigation', { name: 'Main' });
+  await expect(dispatcherMenu.getByRole('link')).toHaveCount(6);
+  await expect(dispatcherMenu).toContainText('Dispatch');
+  await expect(dispatcherMenu).not.toContainText('Billing');
 
   // A hidden section is not reachable by typing its URL either.
   const hidden = await dispatcherPage.goto('/billing');

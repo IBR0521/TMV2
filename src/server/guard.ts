@@ -1,22 +1,34 @@
 import { notFound, redirect } from 'next/navigation';
-import { canSeeSection } from '@/domain/navigation';
+import { MENU_BY_ROLE, type NavKey } from '@/ui/navigation';
+import { sectionForPath } from '@/nav';
 import { isOfficeRole, type Role } from '@/domain/roles';
 import { getContext, type Ctx } from './context';
 
+export { sectionForPath };
+
 /**
- * A hidden section is not reachable by typing its URL either. It answers 404
- * rather than "not allowed", which would tell someone what exists.
+ * Who may open which section.
+ *
+ * The menu itself lives in src/ui/navigation.ts (the design kit owns it, so the
+ * sidebar and this guard can never disagree). A hidden section is not reachable
+ * by typing its URL either: it answers 404 rather than "not allowed", which
+ * would tell someone what exists.
  */
-export async function requireSection(sectionKey: string): Promise<Ctx> {
+function canSee(role: Role, key: NavKey): boolean {
+  if (!isOfficeRole(role)) return false;
+  return MENU_BY_ROLE[role as Exclude<Role, 'driver'>].includes(key);
+}
+
+export async function requireSection(key: NavKey): Promise<Ctx> {
   const ctx = await getContext();
   if (!ctx) redirect('/login');
   if (!isOfficeRole(ctx.role)) redirect('/d');
-  if (!canSeeSection(ctx.role, sectionKey)) notFound();
+  if (!canSee(ctx.role, key)) notFound();
   return ctx;
 }
 
-export async function requireRole(sectionKey: string, roles: readonly Role[]): Promise<Ctx> {
-  const ctx = await requireSection(sectionKey);
+export async function requireRole(key: NavKey, roles: readonly Role[]): Promise<Ctx> {
+  const ctx = await requireSection(key);
   if (!roles.includes(ctx.role)) notFound();
   return ctx;
 }

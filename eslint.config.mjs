@@ -37,6 +37,18 @@ const config = [
     ],
   },
   {
+    /**
+     * src/ui is the owner's design kit, delivered as a unit. Its copy contains
+     * ordinary apostrophes ("I've arrived"), which render correctly; the rule
+     * is a style preference and the kit is not ours to edit.
+     */
+    name: 'truckmates/design-kit-is-owner-owned',
+    files: ['src/ui/**/*.{ts,tsx}'],
+    rules: {
+      'react/no-unescaped-entities': 'off',
+    },
+  },
+  {
     // Request-handling code: this is where a bypass of RLS would be a breach.
     // scripts/ and tests/ are excluded on purpose (the seed script and the RLS
     // tests have to create two companies); tests/actions pins that boundary

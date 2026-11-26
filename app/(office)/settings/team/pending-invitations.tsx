@@ -2,8 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/ui/button';
-import { PanelRow } from '@/ui/panel';
+import { Button, ListRow } from '@/ui';
 import { roleLabel } from '@/domain/roles';
 import { revokeInvitation } from '@/server/actions/team';
 import type { Invitation } from '@/server/services/team';
@@ -25,55 +24,42 @@ export function PendingInvitations({ invitations }: { invitations: Invitation[] 
   }
 
   return (
-    <div data-testid="pending-invitations">
-      {error && (
-        <p role="alert" className="border-b border-border px-5 py-3 text-label text-danger">
-          {error}
-        </p>
-      )}
+    <>
+      {error ? <ListRow label="Problem" title={error} /> : null}
+
       {invitations.map((invitation) => (
-        <PanelRow key={invitation.id}>
-          <div className="min-w-0">
-            <p className="truncate text-body-strong">{invitation.email}</p>
-            <p className="truncate text-label text-text-muted">
-              {roleLabel(invitation.role)} · link expires{' '}
-              {new Date(invitation.expiresAt).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-              })}
-            </p>
-            {/* The link is shown, not just copied: you can see what you are sending. */}
-            <code
-              data-testid="invite-link"
-              className="mt-1 block truncate font-mono text-label text-text-secondary"
-            >
-              {invitation.link}
-            </code>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button variant="quiet" onClick={() => void copy(invitation)}>
-              {copied === invitation.id ? 'Copied' : 'Copy link'}
-            </Button>
-            <Button
-              variant="secondary"
-              disabled={pending}
-              onClick={() =>
-                startTransition(async () => {
-                  setError(null);
-                  const result = await revokeInvitation({ invitationId: invitation.id });
-                  if (!result.ok) {
-                    setError(result.error);
-                    return;
-                  }
-                  router.refresh();
-                })
-              }
-            >
-              Withdraw
-            </Button>
-          </div>
-        </PanelRow>
+        <ListRow
+          key={invitation.id}
+          label={`${roleLabel(invitation.role)} · link expires ${new Date(
+            invitation.expiresAt,
+          ).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+          title={`${invitation.email} · ${invitation.link}`}
+          action={
+            <>
+              <Button size="sm" variant="ghost" onClick={() => void copy(invitation)}>
+                {copied === invitation.id ? 'Copied' : 'Copy link'}
+              </Button>
+              <Button
+                size="sm"
+                disabled={pending}
+                onClick={() =>
+                  startTransition(async () => {
+                    setError(null);
+                    const result = await revokeInvitation({ invitationId: invitation.id });
+                    if (!result.ok) {
+                      setError(result.error);
+                      return;
+                    }
+                    router.refresh();
+                  })
+                }
+              >
+                Withdraw
+              </Button>
+            </>
+          }
+        />
       ))}
-    </div>
+    </>
   );
 }

@@ -1,35 +1,81 @@
-import { Button } from '@/ui/button';
-import { SampleNotice } from '@/ui/app-frame';
+import {
+  Amount,
+  Button,
+  type Column,
+  DataTable,
+  PageHeader,
+  Panel,
+  PanelHeader,
+  SearchField,
+  StatusChip,
+  TextLink,
+} from '@/ui';
 import { requireSection } from '@/server/guard';
-import { SAMPLE_LOADS } from './_sample';
-import { LoadsTable } from './loads-table';
+import { SAMPLE_LOADS, STATUS_LABEL, type SampleLoad } from './_sample';
 
 export const metadata = { title: 'Loads' };
 
 /**
- * Every load with status, driver, rate and margin — the screen docs/spec/
- * screens.md calls row 2, with "New load" as its primary action.
+ * Every load with status, driver, rate and margin (docs/spec/screens.md, row 2).
  *
- * Phase 1 has no loads table, so the rows are the spec's own sample figures and
- * the notice says so. The structure, the views, the sorting, the selection and
- * the detail pane are real, and phase 3 swaps the data underneath.
+ * Phase 1 has no loads table, so these are the spec's sample figures and the
+ * subtitle says so. Phase 3 replaces SAMPLE_LOADS with a query.
  */
+const COLUMNS: Column<SampleLoad>[] = [
+  {
+    key: 'number',
+    header: 'Load',
+    render: (load) => <TextLink href={`/loads/${load.number}`}>#{load.number}</TextLink>,
+  },
+  {
+    key: 'status',
+    header: 'Status',
+    render: (load) =>
+      load.late ? (
+        <StatusChip tone="warning" dot>
+          Late
+        </StatusChip>
+      ) : (
+        <StatusChip tone={load.status === 'delivered' ? 'idle' : 'normal'}>
+          {STATUS_LABEL[load.status]}
+        </StatusChip>
+      ),
+  },
+  { key: 'customer', header: 'Customer', render: (load) => load.customer },
+  { key: 'lane', header: 'Lane', render: (load) => `${load.from} → ${load.to}` },
+  { key: 'pickup', header: 'Pickup', render: (load) => load.pickup },
+  {
+    key: 'driver',
+    header: 'Driver',
+    render: (load) =>
+      load.driver ? `${load.unit} · ${load.driver}` : <span className="text-text-muted">Unassigned</span>,
+  },
+  { key: 'miles', header: 'Miles', align: 'right', render: (load) => load.miles },
+  {
+    key: 'rate',
+    header: 'Rate',
+    align: 'right',
+    render: (load) => <Amount cents={load.rateCents} decimals={false} />,
+  },
+];
+
 export default async function LoadsPage() {
   await requireSection('loads');
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-8 pt-6 pb-4">
-        <h1 className="text-page-title">Loads</h1>
-        <span className="nums text-body text-text-muted">{SAMPLE_LOADS.length}</span>
-        <div className="ml-auto flex items-center gap-2">
-          <Button variant="secondary">Import</Button>
-          <Button variant="primary">New load</Button>
-        </div>
-      </div>
+      <PageHeader
+        title="Loads"
+        subtitle={`${SAMPLE_LOADS.length} loads · sample data until phase 3`}
+      >
+        <SearchField />
+        <Button variant="primary">New load</Button>
+      </PageHeader>
 
-      <SampleNotice phase="phase 3" what="Loads" />
-      <LoadsTable />
+      <Panel label="Loads">
+        <PanelHeader title="All loads" count={SAMPLE_LOADS.length} />
+        <DataTable columns={COLUMNS} rows={SAMPLE_LOADS} rowKey={(load) => load.id} />
+      </Panel>
     </>
   );
 }

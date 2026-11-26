@@ -1,12 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { AuthCard, FormError } from '@/ui/auth-card';
-import { Button } from '@/ui/button';
-import { useHydrated } from '@/ui/use-hydrated';
-import { Field, TextInput } from '@/ui/field';
+import {
+  Button,
+  EmptyState,
+  Field,
+  FormActions,
+  FormGrid,
+  Input,
+  Panel,
+  PanelHeader,
+  TextLink,
+} from '@/ui';
+import { useHydrated } from '@/client/use-hydrated';
 import { browserDb } from '@/server/db/browser';
 
 /**
@@ -45,7 +52,6 @@ export default function SignupPage() {
       return;
     }
 
-    // Email confirmation is off locally and on in production.
     if (!data.session) {
       setBusy(false);
       setCheckEmail(true);
@@ -58,63 +64,56 @@ export default function SignupPage() {
 
   if (checkEmail) {
     return (
-      <AuthCard title="Check your email" subline={`We sent a confirmation link to ${email}.`}>
-        <p className="text-body text-text-secondary">
-          Open it to finish creating your account, then set up your carrier.
-        </p>
-      </AuthCard>
+      <Panel>
+        <PanelHeader title="Check your email" />
+        <EmptyState
+          title={`We sent a confirmation link to ${email}`}
+          hint="Open it to finish creating your account, then set up your carrier."
+        />
+      </Panel>
     );
   }
 
   return (
-    <AuthCard
-      title="Create your account"
-      subline="14 days free, no card."
-      footer={
-        <>
-          Already have an account?{' '}
-          <Link href="/login" className="text-link hover:underline">
-            Sign in
-          </Link>
-        </>
-      }
-    >
-      <form method="post" onSubmit={signUp} className="space-y-4">
-        <FormError message={error} />
-        <Field label="Your name">
-          <TextInput
-            name="name"
-            autoComplete="name"
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </Field>
-        <Field label="Email">
-          <TextInput
-            type="email"
-            name="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </Field>
-        <Field label="Password" hint="At least 8 characters.">
-          <TextInput
-            type="password"
-            name="password"
-            autoComplete="new-password"
-            minLength={8}
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </Field>
-        <Button type="submit" variant="primary" disabled={busy || !ready} className="w-full">
-          {busy ? 'Creating…' : 'Create account'}
-        </Button>
-      </form>
-    </AuthCard>
+    <form method="post" onSubmit={signUp}>
+      <Panel>
+        <PanelHeader title="Create your account" />
+        <FormGrid columns={1}>
+          <Field label="Your name">
+            <Input
+              autoComplete="name"
+              required
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+            />
+          </Field>
+          <Field label="Email" error={error ?? undefined}>
+            <Input
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+          </Field>
+          <Field label="Password" hint="At least 8 characters. 14 days free, no card.">
+            <Input
+              type="password"
+              autoComplete="new-password"
+              minLength={8}
+              required
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+          </Field>
+        </FormGrid>
+        <FormActions>
+          <TextLink href="/login">Sign in instead</TextLink>
+          <Button type="submit" variant="primary" disabled={busy || !ready}>
+            {busy ? 'Creating' : 'Create account'}
+          </Button>
+        </FormActions>
+      </Panel>
+    </form>
   );
 }

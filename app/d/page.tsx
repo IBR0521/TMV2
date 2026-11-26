@@ -1,5 +1,4 @@
-import { Panel } from '@/ui/panel';
-import { EmptyState } from '@/ui/empty-state';
+import { DriverCaption, DriverCard, DriverScreen } from '@/ui';
 
 /**
  * The driver app is phase 4. Until then a driver who signs in lands here
@@ -9,13 +8,14 @@ export const metadata = { title: 'Driver' };
 
 export default function DriverPlaceholder() {
   return (
-    <div className="mx-auto max-w-[420px] px-4 py-10">
-      <Panel>
-        <EmptyState
-          title="The driver app arrives in phase 4"
-          detail="Your loads, arrival and departure times and document photos will live here."
-        />
-      </Panel>
-    </div>
+    <DriverScreen title="TruckMates" tab="loads">
+      <DriverCaption>Driver app</DriverCaption>
+      <DriverCard label="Coming in phase 4">
+        <div className="font-medium">The driver app arrives in phase 4</div>
+        <DriverCaption>
+          Your loads, arrival and departure times and document photos will live here.
+        </DriverCaption>
+      </DriverCard>
+    </DriverScreen>
   );
 }

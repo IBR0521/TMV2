@@ -34,6 +34,8 @@ const values: Record<string, string> = {
   SUPABASE_SERVICE_ROLE_KEY: s.SERVICE_ROLE_KEY ?? '',
   DATABASE_URL: s.DB_URL ?? 'postgresql://postgres:postgres@127.0.0.1:54322/postgres',
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL ?? 'http://127.0.0.1:3000',
+  // Makes /design-preview reachable for the visual test. Never set in production.
+  NEXT_PUBLIC_DESIGN_PREVIEW: '1',
 };
 
 const missing = Object.entries(values)

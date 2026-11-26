@@ -5,7 +5,13 @@
  * screen says so plainly. The shape follows docs/spec/spec.md (Data model,
  * Loads group) so that wiring it up in phase 3 is a swap, not a rewrite.
  */
-import type { Stop } from '@/ui/route-strip';
+/** One stop of a load, as the kit's StopItem renders it. */
+export type Stop = {
+  city: string;
+  kind: 'pickup' | 'delivery';
+  when: string;
+  state: 'done' | 'current' | 'upcoming';
+};
 
 export type LoadStatus = 'draft' | 'booked' | 'dispatched' | 'in_transit' | 'delivered';
 
@@ -81,7 +87,7 @@ export const SAMPLE_LOADS: SampleLoad[] = [
     stops: [
       { city: 'Houston, TX', kind: 'pickup', when: 'Nov 25 06:00', state: 'done' },
       { city: 'Lufkin, TX', kind: 'delivery', when: '45 min late', state: 'current' },
-      { city: 'Shreveport, LA', kind: 'delivery', when: 'ETA 16:10', state: 'ahead' },
+      { city: 'Shreveport, LA', kind: 'delivery', when: 'ETA 16:10', state: 'upcoming' },
     ],
   },
   {
@@ -124,7 +130,7 @@ export const SAMPLE_LOADS: SampleLoad[] = [
     reference: 'HFF-7781',
     stops: [
       { city: 'Houston, TX', kind: 'pickup', when: 'loading 09:40', state: 'current' },
-      { city: 'Dallas, TX', kind: 'delivery', when: 'Nov 25 18:00', state: 'ahead' },
+      { city: 'Dallas, TX', kind: 'delivery', when: 'Nov 25 18:00', state: 'upcoming' },
     ],
   },
   {
@@ -144,8 +150,8 @@ export const SAMPLE_LOADS: SampleLoad[] = [
     progress: 0,
     reference: 'NL-883140',
     stops: [
-      { city: 'Memphis, TN', kind: 'pickup', when: 'Nov 26 08:00', state: 'ahead' },
-      { city: 'Chicago, IL', kind: 'delivery', when: 'Nov 27 10:00', state: 'ahead' },
+      { city: 'Memphis, TN', kind: 'pickup', when: 'Nov 26 08:00', state: 'upcoming' },
+      { city: 'Chicago, IL', kind: 'delivery', when: 'Nov 27 10:00', state: 'upcoming' },
     ],
   },
   {
@@ -165,8 +171,8 @@ export const SAMPLE_LOADS: SampleLoad[] = [
     progress: 0,
     reference: 'RMR-0094',
     stops: [
-      { city: 'Dallas, TX', kind: 'pickup', when: 'Nov 27 06:00', state: 'ahead' },
-      { city: 'Denver, CO', kind: 'delivery', when: 'Nov 28 12:00', state: 'ahead' },
+      { city: 'Dallas, TX', kind: 'pickup', when: 'Nov 27 06:00', state: 'upcoming' },
+      { city: 'Denver, CO', kind: 'delivery', when: 'Nov 28 12:00', state: 'upcoming' },
     ],
   },
   {
@@ -186,8 +192,8 @@ export const SAMPLE_LOADS: SampleLoad[] = [
     progress: 0,
     reference: 'DRF-3310',
     stops: [
-      { city: 'Houston, TX', kind: 'pickup', when: 'Nov 27 13:00', state: 'ahead' },
-      { city: 'New Orleans, LA', kind: 'delivery', when: 'Nov 28 07:00', state: 'ahead' },
+      { city: 'Houston, TX', kind: 'pickup', when: 'Nov 27 13:00', state: 'upcoming' },
+      { city: 'New Orleans, LA', kind: 'delivery', when: 'Nov 28 07:00', state: 'upcoming' },
     ],
   },
   {
@@ -295,8 +301,8 @@ export const SAMPLE_LOADS: SampleLoad[] = [
     progress: 0,
     reference: 'NL-883166',
     stops: [
-      { city: 'Chicago, IL', kind: 'pickup', when: 'Nov 28 09:00', state: 'ahead' },
-      { city: 'Detroit, MI', kind: 'delivery', when: 'Nov 28 18:00', state: 'ahead' },
+      { city: 'Chicago, IL', kind: 'pickup', when: 'Nov 28 09:00', state: 'upcoming' },
+      { city: 'Detroit, MI', kind: 'delivery', when: 'Nov 28 18:00', state: 'upcoming' },
     ],
   },
 ];

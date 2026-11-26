@@ -1,14 +1,36 @@
-import { Page } from '@/ui/app-frame';
-import { PageHeader } from '@/ui/page-header';
-import { Panel, PanelBody, PanelHeader, PanelRow } from '@/ui/panel';
-import { EmptyState } from '@/ui/empty-state';
+import {
+  type Column,
+  DataTable,
+  EmptyState,
+  PageHeader,
+  Panel,
+  PanelHeader,
+  StatusChip,
+} from '@/ui';
 import { roleLabel } from '@/domain/roles';
 import { requireRole } from '@/server/guard';
-import { listInvitations, listTeam } from '@/server/services/team';
+import { listInvitations, listTeam, type TeamMember } from '@/server/services/team';
 import { InviteForm } from './invite-form';
 import { PendingInvitations } from './pending-invitations';
 
 export const metadata = { title: 'Users and roles' };
+
+const COLUMNS: Column<TeamMember>[] = [
+  { key: 'name', header: 'Name', render: (member) => member.name || member.email },
+  { key: 'email', header: 'Email', render: (member) => member.email },
+  { key: 'role', header: 'Role', render: (member) => roleLabel(member.role) },
+  {
+    key: 'status',
+    header: 'Status',
+    align: 'right',
+    render: (member) =>
+      member.status === 'active' ? (
+        <StatusChip tone="idle">Active</StatusChip>
+      ) : (
+        <StatusChip tone="warning">{member.status}</StatusChip>
+      ),
+  },
+];
 
 /**
  * Invite by email with a role, and a copyable link for everyone — drivers
@@ -20,47 +42,30 @@ export default async function TeamPage() {
   const [members, invitations] = await Promise.all([listTeam(ctx), listInvitations(ctx)]);
 
   return (
-    <Page>
-      <div className="space-y-6">
+    <>
       <PageHeader
         title="Users and roles"
-        subline={`${members.length} ${members.length === 1 ? 'person' : 'people'}`}
+        subtitle={`${members.length} ${members.length === 1 ? 'person' : 'people'}`}
       />
 
-      <Panel>
+      <Panel label="Invite someone">
         <PanelHeader title="Invite someone" />
-        <PanelBody>
-          <InviteForm />
-        </PanelBody>
+        <InviteForm />
       </Panel>
 
-      <Panel>
+      <Panel label="People">
         <PanelHeader title="People" count={members.length} />
-        {members.map((member) => (
-          <PanelRow key={member.membershipId}>
-            <div className="min-w-0">
-              <p className="truncate text-body-strong">{member.name || member.email}</p>
-              <p className="truncate text-label text-text-muted">{member.email}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-body">{roleLabel(member.role)}</p>
-              {member.status !== 'active' && (
-                <p className="text-label text-danger">{member.status}</p>
-              )}
-            </div>
-          </PanelRow>
-        ))}
+        <DataTable columns={COLUMNS} rows={members} rowKey={(member) => member.membershipId} />
       </Panel>
 
-      <Panel>
+      <Panel label="Invited">
         <PanelHeader title="Invited" count={invitations.length} />
         {invitations.length === 0 ? (
-          <EmptyState title="No open invitations" detail="Invite someone and copy their link." />
+          <EmptyState title="No open invitations" hint="Invite someone and copy their link." />
         ) : (
           <PendingInvitations invitations={invitations} />
         )}
       </Panel>
-      </div>
-    </Page>
+    </>
   );
 }

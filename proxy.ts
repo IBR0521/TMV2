@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import { NAV_SECTIONS, SETTINGS_SECTION } from '@/domain/navigation';
+import { isOfficePath } from '@/nav';
 
 /**
  * Next.js 16 calls this a proxy; it is the old middleware.
@@ -10,12 +10,6 @@ import { NAV_SECTIONS, SETTINGS_SECTION } from '@/domain/navigation';
  * touches; every authorisation decision is still made by RLS and by the action
  * wrapper's role check.
  */
-const OFFICE_PREFIXES = [...NAV_SECTIONS.map((s) => s.href), SETTINGS_SECTION.href];
-
-function isOfficePath(pathname: string): boolean {
-  return OFFICE_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
-}
-
 export default async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 

@@ -1,19 +1,20 @@
 import Link from 'next/link';
 
 const PROPOSAL = {
-  href: '/design/d',
-  name: 'Night haul',
-  thesis: 'Built the way dark software is actually built, with the trade showing in the figures.',
+  href: '/design/e',
+  name: 'Manifest',
+  thesis: 'A dispatch sheet, not a dashboard: ruled lines, placards and stencilled figures, with the fleet across the top.',
   points: [
-    'Depth from surface lightness, not shadows: base, panel, elevated, overlay, each a step lighter.',
-    'Hairlines made of light — white at 7% — instead of drawn-on grey, which is what made the first attempt look muddy.',
-    'Four text tones used strictly, weight capped at 500, so chrome recedes and content carries.',
-    'One saturated colour, sodium amber, for the thing that needs a person. Green and red are state and nothing else.',
-    'Lists with no dividers; the hover surface separates them. Figures set in mono, large enough to read across a desk.',
+    'Archivo, an American grotesque drawn for print and signage, instead of the typeface every template ships with.',
+    'No left sidebar: the fleet runs across the top as six ruled cells with unit placards, a word for what each truck is doing and how far through the run it is.',
+    'The inbox is a ruled manifest — tick, subject, field name in wide caps, facts, amount right-aligned in mono, one action.',
+    'A door placard for a mark, and a masthead that reads like the head of a document: carrier, power units, MC number.',
+    'Money as a column of figures with a rule under each whose length is its share of the week.',
   ],
 };
 
 const REJECTED = [
+  { href: '/design/d', name: 'Night haul', note: 'Correct mechanics, no point of view: the default dark shell.' },
   { href: '/design/a', name: 'Console', note: 'Dense, but the same flat grey panel as the rest.' },
   { href: '/design/b', name: 'Queue', note: 'One decision at a time, in a template.' },
   { href: '/design/c', name: 'Board', note: 'The structure was right, the look was not.' },

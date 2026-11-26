@@ -293,3 +293,109 @@
 @media (prefers-reduced-motion: reduce) {
   [data-world='night'] .live-dot { animation: none; }
 }
+
+/* ------------------------------------------------------------------ */
+/* E — Manifest.                                                       */
+/*                                                                     */
+/* Not a dashboard. A dispatch sheet: ruled lines, placards, stencilled */
+/* numbers and wide-tracked caps, the way the paperwork this trade runs */
+/* on is actually set. Archivo (an American grotesque drawn for print   */
+/* and signage) with IBM Plex Mono for every figure. No left sidebar —  */
+/* the fleet is the first thing on the page, because it is the first    */
+/* thing a dispatcher wants to know.                                    */
+/* ------------------------------------------------------------------ */
+[data-world='manifest'] {
+  color-scheme: dark;
+
+  --ink: #0b0b0c;
+  --sheet: #121214;
+  --raised: #17181a;
+  --hair: rgb(255 255 255 / 0.09);
+  --hair-strong: rgb(255 255 255 / 0.18);
+
+  --t1: rgb(255 255 255 / 0.94);
+  --t2: rgb(255 255 255 / 0.66);
+  --t3: rgb(255 255 255 / 0.46);
+  --t4: rgb(255 255 255 / 0.3);
+
+  --amber: #ffb81c;
+  --amber-ink: #17100a;
+  --guide: #3ecf7a;
+  --signal: #ff5247;
+
+  --color-bg: var(--ink);
+  --color-surface: var(--sheet);
+  --color-surface-raised: var(--raised);
+  --color-text: var(--t1);
+  --color-text-secondary: var(--t2);
+  --color-text-muted: var(--t3);
+  --color-border: var(--hair);
+  --color-primary: var(--amber);
+  --color-on-primary: var(--amber-ink);
+
+  font-family: var(--font-archivo), system-ui, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+[data-world='manifest'] .nums,
+[data-world='manifest'] .mono {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+
+/* Wide-tracked caps: the field names on a printed sheet. */
+[data-world='manifest'] .caps {
+  font-size: 10px;
+  line-height: 14px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--t3);
+}
+
+/* A number as it is stencilled on a door or stamped on a sheet. */
+[data-world='manifest'] .placard {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  background: var(--amber);
+  color: var(--amber-ink);
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+
+[data-world='manifest'] .placard-dark {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  background: var(--raised);
+  color: var(--t1);
+  border: 1px solid var(--hair-strong);
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+
+/* Ruled lines, because a manifest is ruled. */
+[data-world='manifest'] .ruled > * + * {
+  border-top: 1px solid var(--hair);
+}
+
+[data-world='manifest'] .sheet-grain {
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 27px,
+      rgb(255 255 255 / 0.012) 27px 28px
+    );
+}
+
+[data-world='manifest'] ::selection {
+  background: rgb(255 184 28 / 0.3);
+  color: var(--t1);
+}
+[data-world='manifest'] :focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 1px;
+}

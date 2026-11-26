@@ -117,6 +117,116 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"compliance_documents": {
+                  Row: {
+                    "company_id": string,"created_at": string,"driver_id": string | null,"expires_on": string | null,"file_id": string | null,"id": string,"kind": Database["public"]['Enums']["compliance_kind"],"note": string | null,"subject_id": string | null,"subject_type": string | null,"trailer_id": string | null,"truck_id": string | null,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "company_id": string,"created_at"?: string,"driver_id"?: string | null,"expires_on"?: string | null,"file_id"?: string | null,"id"?: string,"kind": Database["public"]['Enums']["compliance_kind"],"note"?: string | null,"subject_id"?: never,"subject_type"?: never,"trailer_id"?: string | null,"truck_id"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "company_id"?: string,"created_at"?: string,"driver_id"?: string | null,"expires_on"?: string | null,"file_id"?: string | null,"id"?: string,"kind"?: Database["public"]['Enums']["compliance_kind"],"note"?: string | null,"subject_id"?: never,"subject_type"?: never,"trailer_id"?: string | null,"truck_id"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "compliance_documents_company_id_driver_id_fkey"
+      columns: ["company_id","driver_id"]
+isOneToOne: false
+      referencedRelation: "drivers"
+      referencedColumns: ["company_id","id"]
+    },{
+      foreignKeyName: "compliance_documents_company_id_file_id_fkey"
+      columns: ["company_id","file_id"]
+isOneToOne: false
+      referencedRelation: "files"
+      referencedColumns: ["company_id","id"]
+    },{
+      foreignKeyName: "compliance_documents_company_id_fkey"
+      columns: ["company_id"]
+isOneToOne: false
+      referencedRelation: "companies"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "compliance_documents_company_id_trailer_id_fkey"
+      columns: ["company_id","trailer_id"]
+isOneToOne: false
+      referencedRelation: "trailers"
+      referencedColumns: ["company_id","id"]
+    },{
+      foreignKeyName: "compliance_documents_company_id_truck_id_fkey"
+      columns: ["company_id","truck_id"]
+isOneToOne: false
+      referencedRelation: "trucks"
+      referencedColumns: ["company_id","id"]
+    }
+                  ]
+                },"customer_contacts": {
+                  Row: {
+                    "company_id": string,"created_at": string,"customer_id": string,"email": string | null,"id": string,"name": string,"phone": string | null,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "company_id": string,"created_at"?: string,"customer_id": string,"email"?: string | null,"id"?: string,"name": string,"phone"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "company_id"?: string,"created_at"?: string,"customer_id"?: string,"email"?: string | null,"id"?: string,"name"?: string,"phone"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "customer_contacts_company_id_customer_id_fkey"
+      columns: ["company_id","customer_id"]
+isOneToOne: false
+      referencedRelation: "customers"
+      referencedColumns: ["company_id","id"]
+    },{
+      foreignKeyName: "customer_contacts_company_id_fkey"
+      columns: ["company_id"]
+isOneToOne: false
+      referencedRelation: "companies"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"customers": {
+                  Row: {
+                    "archived_at": string | null,"billing_email": string | null,"company_id": string,"created_at": string,"id": string,"mc_number": string | null,"name": string,"payment_terms_days": number,"send_mode": Database["public"]['Enums']["invoice_send_mode"],"type": Database["public"]['Enums']["customer_type"],"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "archived_at"?: string | null,"billing_email"?: string | null,"company_id": string,"created_at"?: string,"id"?: string,"mc_number"?: string | null,"name": string,"payment_terms_days"?: number,"send_mode"?: Database["public"]['Enums']["invoice_send_mode"],"type"?: Database["public"]['Enums']["customer_type"],"updated_at"?: string
+                  }
+                  Update: {
+                    "archived_at"?: string | null,"billing_email"?: string | null,"company_id"?: string,"created_at"?: string,"id"?: string,"mc_number"?: string | null,"name"?: string,"payment_terms_days"?: number,"send_mode"?: Database["public"]['Enums']["invoice_send_mode"],"type"?: Database["public"]['Enums']["customer_type"],"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "customers_company_id_fkey"
+      columns: ["company_id"]
+isOneToOne: false
+      referencedRelation: "companies"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"drivers": {
+                  Row: {
+                    "archived_at": string | null,"company_id": string,"created_at": string,"home_location": string | null,"id": string,"name": string,"phone": string | null,"status": Database["public"]['Enums']["driver_status"],"type": Database["public"]['Enums']["driver_type"],"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "archived_at"?: string | null,"company_id": string,"created_at"?: string,"home_location"?: string | null,"id"?: string,"name": string,"phone"?: string | null,"status"?: Database["public"]['Enums']["driver_status"],"type"?: Database["public"]['Enums']["driver_type"],"updated_at"?: string
+                  }
+                  Update: {
+                    "archived_at"?: string | null,"company_id"?: string,"created_at"?: string,"home_location"?: string | null,"id"?: string,"name"?: string,"phone"?: string | null,"status"?: Database["public"]['Enums']["driver_status"],"type"?: Database["public"]['Enums']["driver_type"],"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "drivers_company_id_fkey"
+      columns: ["company_id"]
+isOneToOne: false
+      referencedRelation: "companies"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"events": {
                   Row: {
                     "actor_id": string | null,"actor_type": string,"company_id": string,"id": string,"job_queued": boolean,"occurred_at": string,"payload": NonNullable<Json>,"processed_at": string | null,"subject_id": string | null,"subject_type": string,"type": string
@@ -137,6 +247,26 @@ isOneToOne: false
       referencedColumns: ["id"]
     },{
       foreignKeyName: "events_company_id_fkey"
+      columns: ["company_id"]
+isOneToOne: false
+      referencedRelation: "companies"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"facilities": {
+                  Row: {
+                    "address": string,"archived_at": string | null,"company_id": string,"created_at": string,"detention_free_minutes": number,"geocode_status": Database["public"]['Enums']["geocode_status"],"geocoded_at": string | null,"id": string,"lat": number | null,"lng": number | null,"name": string,"notes": string | null,"timezone": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "address": string,"archived_at"?: string | null,"company_id": string,"created_at"?: string,"detention_free_minutes"?: number,"geocode_status"?: Database["public"]['Enums']["geocode_status"],"geocoded_at"?: string | null,"id"?: string,"lat"?: number | null,"lng"?: number | null,"name": string,"notes"?: string | null,"timezone"?: string,"updated_at"?: string
+                  }
+                  Update: {
+                    "address"?: string,"archived_at"?: string | null,"company_id"?: string,"created_at"?: string,"detention_free_minutes"?: number,"geocode_status"?: Database["public"]['Enums']["geocode_status"],"geocoded_at"?: string | null,"id"?: string,"lat"?: number | null,"lng"?: number | null,"name"?: string,"notes"?: string | null,"timezone"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "facilities_company_id_fkey"
       columns: ["company_id"]
 isOneToOne: false
       referencedRelation: "companies"
@@ -164,6 +294,46 @@ isOneToOne: false
     },{
       foreignKeyName: "files_uploaded_by_fkey"
       columns: ["uploaded_by"]
+isOneToOne: false
+      referencedRelation: "users"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"fmcsa_carriers": {
+                  Row: {
+                    "city": string | null,"dba_name": string | null,"dot_number": string,"entity_type": string | null,"legal_name": string,"mc_number": string | null,"operating_status": string | null,"refreshed_at": string,"state": string | null,"street": string | null,"zip": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "city"?: string | null,"dba_name"?: string | null,"dot_number": string,"entity_type"?: string | null,"legal_name": string,"mc_number"?: string | null,"operating_status"?: string | null,"refreshed_at"?: string,"state"?: string | null,"street"?: string | null,"zip"?: string | null
+                  }
+                  Update: {
+                    "city"?: string | null,"dba_name"?: string | null,"dot_number"?: string,"entity_type"?: string | null,"legal_name"?: string,"mc_number"?: string | null,"operating_status"?: string | null,"refreshed_at"?: string,"state"?: string | null,"street"?: string | null,"zip"?: string | null
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"import_mappings": {
+                  Row: {
+                    "columns": NonNullable<Json>,"company_id": string,"created_at": string,"created_by": string | null,"id": string,"kind": Database["public"]['Enums']["import_kind"],"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "columns"?: NonNullable<Json>,"company_id": string,"created_at"?: string,"created_by"?: string | null,"id"?: string,"kind": Database["public"]['Enums']["import_kind"],"updated_at"?: string
+                  }
+                  Update: {
+                    "columns"?: NonNullable<Json>,"company_id"?: string,"created_at"?: string,"created_by"?: string | null,"id"?: string,"kind"?: Database["public"]['Enums']["import_kind"],"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "import_mappings_company_id_fkey"
+      columns: ["company_id"]
+isOneToOne: false
+      referencedRelation: "companies"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "import_mappings_created_by_fkey"
+      columns: ["created_by"]
 isOneToOne: false
       referencedRelation: "users"
       referencedColumns: ["id"]
@@ -219,6 +389,12 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "companies"
       referencedColumns: ["id"]
+    },{
+      foreignKeyName: "memberships_driver_fkey"
+      columns: ["company_id","driver_id"]
+isOneToOne: false
+      referencedRelation: "drivers"
+      referencedColumns: ["company_id","id"]
     },{
       foreignKeyName: "memberships_user_id_fkey"
       columns: ["user_id"]
@@ -293,6 +469,52 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"trailers": {
+                  Row: {
+                    "archived_at": string | null,"company_id": string,"created_at": string,"id": string,"status": Database["public"]['Enums']["unit_status"],"type": Database["public"]['Enums']["trailer_type"],"unit_number": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "archived_at"?: string | null,"company_id": string,"created_at"?: string,"id"?: string,"status"?: Database["public"]['Enums']["unit_status"],"type"?: Database["public"]['Enums']["trailer_type"],"unit_number": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "archived_at"?: string | null,"company_id"?: string,"created_at"?: string,"id"?: string,"status"?: Database["public"]['Enums']["unit_status"],"type"?: Database["public"]['Enums']["trailer_type"],"unit_number"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "trailers_company_id_fkey"
+      columns: ["company_id"]
+isOneToOne: false
+      referencedRelation: "companies"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"trucks": {
+                  Row: {
+                    "archived_at": string | null,"company_id": string,"created_at": string,"id": string,"odometer_miles": number | null,"owner_driver_id": string | null,"plate": string | null,"status": Database["public"]['Enums']["unit_status"],"unit_number": string,"updated_at": string,"vin": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "archived_at"?: string | null,"company_id": string,"created_at"?: string,"id"?: string,"odometer_miles"?: number | null,"owner_driver_id"?: string | null,"plate"?: string | null,"status"?: Database["public"]['Enums']["unit_status"],"unit_number": string,"updated_at"?: string,"vin"?: string | null
+                  }
+                  Update: {
+                    "archived_at"?: string | null,"company_id"?: string,"created_at"?: string,"id"?: string,"odometer_miles"?: number | null,"owner_driver_id"?: string | null,"plate"?: string | null,"status"?: Database["public"]['Enums']["unit_status"],"unit_number"?: string,"updated_at"?: string,"vin"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "trucks_company_id_fkey"
+      columns: ["company_id"]
+isOneToOne: false
+      referencedRelation: "companies"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "trucks_company_id_owner_driver_id_fkey"
+      columns: ["company_id","owner_driver_id"]
+isOneToOne: false
+      referencedRelation: "drivers"
+      referencedColumns: ["company_id","id"]
+    }
+                  ]
                 },"users": {
                   Row: {
                     "auth_id": string,"created_at": string,"email": string,"id": string,"name": string,"updated_at": string
@@ -341,7 +563,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "invitation_status": "pending"|"accepted"|"revoked","membership_status": "active"|"invited"|"disabled","subscription_status": "trialing"|"active"|"past_due"|"cancelled","user_role": "owner"|"dispatcher"|"accounting"|"driver"
+            "compliance_kind": "cdl"|"medical"|"registration"|"insurance"|"inspection","customer_type": "broker"|"shipper","driver_status": "active"|"inactive","driver_type": "company"|"owner_operator","geocode_status": "pending"|"found"|"not_found"|"manual","import_kind": "trucks"|"drivers"|"customers","invitation_status": "pending"|"accepted"|"revoked","invoice_send_mode": "email"|"own_portal","membership_status": "active"|"invited"|"disabled","subscription_status": "trialing"|"active"|"past_due"|"cancelled","trailer_type": "dry_van"|"reefer"|"flatbed","unit_status": "active"|"inactive"|"in_shop","user_role": "owner"|"dispatcher"|"accounting"|"driver"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -457,7 +679,7 @@ export type CompositeTypes<
 export const Constants = {
   "public": {
           Enums: {
-            "invitation_status": ["pending", "accepted", "revoked"],"membership_status": ["active", "invited", "disabled"],"subscription_status": ["trialing", "active", "past_due", "cancelled"],"user_role": ["owner", "dispatcher", "accounting", "driver"]
+            "compliance_kind": ["cdl", "medical", "registration", "insurance", "inspection"],"customer_type": ["broker", "shipper"],"driver_status": ["active", "inactive"],"driver_type": ["company", "owner_operator"],"geocode_status": ["pending", "found", "not_found", "manual"],"import_kind": ["trucks", "drivers", "customers"],"invitation_status": ["pending", "accepted", "revoked"],"invoice_send_mode": ["email", "own_portal"],"membership_status": ["active", "invited", "disabled"],"subscription_status": ["trialing", "active", "past_due", "cancelled"],"trailer_type": ["dry_van", "reefer", "flatbed"],"unit_status": ["active", "inactive", "in_shop"],"user_role": ["owner", "dispatcher", "accounting", "driver"]
           }
         }
 } as const

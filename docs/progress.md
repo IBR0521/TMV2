@@ -2,7 +2,7 @@
 
 ## Phase 2 — Fleet and customers
 
-**Status: in progress on branch `phase-2-fleet`, steps 1 and 2 of 12 done.**
+**Status: in progress on branch `phase-2-fleet`, steps 1 to 4 of 12 done.**
 The plan was approved on 26 November 2026. Nothing is pushed and there is no
 pull request yet.
 
@@ -18,7 +18,19 @@ pull request yet.
    six tables.
 2. **Domain rules.** `src/domain/fleet.ts`, `customers.ts` and
    `spreadsheet.ts`: expiry, labels, the tidying of VIN, phone, MC and email,
-   and the column matching the import needs. 58 new tests, 101 in all.
+   and the column matching the import needs. 58 new tests.
+3. **Services and actions.** `services/fleet.ts`, `customers.ts` and
+   `facilities.ts`, each taking ctx; `actions/fleet.ts`, `customers.ts` and
+   `facilities.ts`, thin wrappers whose schemas carry no company_id. The truck
+   limit lives in `src/domain/plan.ts` so it can be tested without a database:
+   no limit during the trial, an already-active truck does not count twice.
+4. **The Fleet screens.** Drivers, the driver page, trucks and trailers in one
+   list with a toggle, and the unit page. One compliance panel serves drivers,
+   trucks and trailers. One form each for new and edit. Seeded demo fleet for
+   both carriers, with paperwork dated relative to the day the seed runs.
+
+All green: typecheck, lint, UI guard (105 files), 110 unit and action tests,
+210 RLS tests, 4 end-to-end, 4 visual. The visual baselines are untouched.
 
 ### Two deliberate departures from the spec
 
@@ -31,10 +43,27 @@ pull request yet.
 - **`import_mappings` is a table the spec's 37 do not include.** The import has
   to remember each company's column choices and they need somewhere to live.
 
+### Defect found and fixed
+
+The worker's health endpoint went on answering "ok" after Graphile Worker had
+shut itself down over a schema change, so Playwright reused a worker that was
+never going to run a job and an end-to-end test failed for the wrong reason.
+It now answers 503 once the runner stops, and the process exits non-zero
+rather than lingering as something that answers requests but does no work.
+
+### One thing the kit does not have
+
+**A form-level error line.** A field error has `Field error=`, but a problem
+about the whole form — "Your plan covers 5 active trucks" — has nowhere of its
+own. It is shown on the first field, which is what the phase 1 invite form
+does, so this is consistent rather than invented. `Notice` is the nearest
+thing but belongs under the page header, outside the panel. Worth a decision
+before the forms multiply.
+
 ### Next
 
-Services and actions, then the seven screens from the kit, then uploads,
-import, FMCSA, geocoding, the wizard, the expiry rule and search.
+Customers, the customer page and facilities, then uploads, import, FMCSA,
+geocoding, the wizard, the expiry rule and search.
 
 ### Waiting on the owner
 

@@ -74,7 +74,7 @@ export default async function DispatchPage() {
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-5 pt-4 pb-3">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-8 pt-6 pb-4">
         <h1 className="text-page-title">Dispatch</h1>
         <span className="text-label text-text-muted">
           <span className="nums">{BOARD_TRUCKS.length}</span> trucks ·{' '}
@@ -106,11 +106,11 @@ export default async function DispatchPage() {
       <SampleNotice phase="phase 3" what="The dispatch board" />
 
       <div className="flex min-h-0 flex-1 flex-col-reverse xl:flex-row">
-        <section className="min-w-0 flex-1 overflow-auto p-5">
+        <section className="min-w-0 flex-1 overflow-auto px-8 py-6">
           <div className="min-w-[860px]">
             <div
               className="grid border-b border-border pb-2"
-              style={{ gridTemplateColumns: '176px repeat(4, minmax(0, 1fr))' }}
+              style={{ gridTemplateColumns: '184px repeat(4, minmax(0, 1fr))' }}
             >
               <span className="text-label text-text-muted">Truck</span>
               {DAYS.map((day) => (
@@ -128,7 +128,7 @@ export default async function DispatchPage() {
               <div
                 key={truck.unit}
                 className="grid items-stretch border-b border-border"
-                style={{ gridTemplateColumns: '176px repeat(4, minmax(0, 1fr))', minHeight: 58 }}
+                style={{ gridTemplateColumns: '184px repeat(4, minmax(0, 1fr))', minHeight: 68 }}
               >
                 <div className="flex items-center gap-2.5 py-2.5 pr-3">
                   <span className="unit text-label">{truck.unit}</span>
@@ -179,12 +179,12 @@ export default async function DispatchPage() {
         </section>
 
         <aside className="w-full shrink-0 border-border xl:w-[320px] xl:border-l">
-          <div className="flex items-baseline gap-2 border-b border-border px-5 py-3">
+          <div className="flex items-baseline gap-2 border-b border-border px-6 py-4">
             <h2 className="text-section-title">Needs a driver</h2>
             <span className="nums text-label text-text-muted">{UNASSIGNED.length}</span>
           </div>
 
-          <ul className="p-3">
+          <ul className="space-y-1 p-4">
             {UNASSIGNED.map((load, index) => (
               <li key={load.number} className="row px-2 py-3">
                 <div className="flex items-baseline justify-between gap-2">

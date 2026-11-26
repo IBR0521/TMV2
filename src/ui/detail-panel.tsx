@@ -28,7 +28,7 @@ export function DetailPanel({
       aria-label="Details"
       className="fixed inset-0 z-30 flex flex-col border-border bg-bg md:static md:inset-auto md:z-auto md:w-[420px] md:shrink-0 md:border-l"
     >
-      <header className="flex items-start gap-3 border-b border-border px-5 py-3.5">
+      <header className="flex items-start gap-3 border-b border-border px-6 py-4">
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-2.5">{title}</div>
           {subtitle && <div className="mt-1 text-label text-text-muted">{subtitle}</div>}
@@ -43,10 +43,10 @@ export function DetailPanel({
         </button>
       </header>
 
-      <div className="min-h-0 flex-1 overflow-auto px-5 py-4">{children}</div>
+      <div className="min-h-0 flex-1 overflow-auto px-6 py-5">{children}</div>
 
       {actions && (
-        <footer className="flex items-center gap-2 border-t border-border px-5 py-3">
+        <footer className="flex items-center gap-2 border-t border-border px-6 py-4">
           {actions}
         </footer>
       )}
@@ -74,9 +74,9 @@ export function Fact({
 
 export function PanelSection({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="border-t border-border py-4 first:border-t-0 first:pt-0">
+    <section className="border-t border-border py-5 first:border-t-0 first:pt-0">
       <h3 className="text-section-title">{title}</h3>
-      <div className="mt-3">{children}</div>
+      <div className="mt-3.5">{children}</div>
     </section>
   );
 }

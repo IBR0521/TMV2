@@ -19,7 +19,7 @@ export default async function LoadsPage() {
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-5 pt-4 pb-3">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-8 pt-6 pb-4">
         <h1 className="text-page-title">Loads</h1>
         <span className="nums text-body text-text-muted">{SAMPLE_LOADS.length}</span>
         <div className="ml-auto flex items-center gap-2">

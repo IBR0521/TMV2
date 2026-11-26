@@ -2,19 +2,21 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { navSectionsFor, SETTINGS_SECTION, sectionForPath } from '@/domain/navigation';
+import { navGroupsFor, SETTINGS_SECTION, sectionForPath } from '@/domain/navigation';
 import { type Role, roleLabel } from '@/domain/roles';
 import { cn } from './cn';
 import { NAV_ICONS } from './icons';
 
 /**
- * The left menu. Chrome recedes: labels at text-secondary, icons at
- * text-muted, and only the section you are in lifts onto a surface with its
- * icon in amber. Nothing here competes with the content.
+ * The left rail.
  *
- * Only the sections this role may see are rendered — never greyed out
- * (docs/spec/screens.md, "Who sees what"). At phone width it becomes a row
- * above the content that scrolls sideways.
+ * Ten identical lines cannot be scanned, so the nine sections sit in groups —
+ * Operations, Money, Records — with air between them and a quiet label on
+ * each. Every section and its order from docs/spec/screens.md survives; what
+ * changes is that the eye has somewhere to land.
+ *
+ * The chrome recedes: labels at text-secondary, icons at text-muted, and only
+ * the section you are in lifts onto a surface with its icon in amber.
  */
 export function Sidebar({
   role,
@@ -29,42 +31,51 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   const active = sectionForPath(pathname);
-  const sections = navSectionsFor(role);
+  const groups = navGroupsFor(role);
 
   return (
     <nav
       aria-label="Sections"
-      className="flex shrink-0 flex-col gap-3 border-b border-border px-2 py-3 md:w-[216px] md:border-r md:border-b-0"
+      className="flex shrink-0 flex-col border-b border-border px-3 py-4 md:w-[232px] md:border-r md:border-b-0"
     >
-      <ul
+      <div
         data-testid="nav-sections"
-        className="flex gap-1 overflow-x-auto md:flex-col md:space-y-0.5 md:overflow-x-visible"
+        className="flex gap-1 overflow-x-auto md:flex-col md:gap-0 md:overflow-x-visible"
       >
-        {sections.map((section) => (
-          <li key={section.key} className="shrink-0 md:shrink">
-            <NavItem
-              href={section.href}
-              label={section.label}
-              icon={section.icon}
-              active={active === section.key}
-              count={section.key === 'today' ? todayCount : undefined}
-            />
-          </li>
+        {groups.map((group) => (
+          <div key={group.group} className="contents md:block md:not-first:mt-6">
+            {group.label && (
+              <p className="hidden px-2.5 pb-2 text-label text-text-faint md:block">
+                {group.label}
+              </p>
+            )}
+            <ul className="contents md:block md:space-y-0.5">
+              {group.sections.map((section) => (
+                <li key={section.key} className="shrink-0">
+                  <NavItem
+                    href={section.href}
+                    label={section.label}
+                    icon={section.icon}
+                    active={active === section.key}
+                    count={section.key === 'today' ? todayCount : undefined}
+                  />
+                </li>
+              ))}
+            </ul>
+          </div>
         ))}
-      </ul>
+      </div>
 
-      <ul data-testid="nav-settings" className="flex md:flex-col md:border-t md:border-border md:pt-3">
-        <li className="shrink-0">
-          <NavItem
-            href={SETTINGS_SECTION.href}
-            label={SETTINGS_SECTION.label}
-            icon={SETTINGS_SECTION.icon}
-            active={active === 'settings'}
-          />
-        </li>
-      </ul>
+      <div data-testid="nav-settings" className="md:mt-6">
+        <NavItem
+          href={SETTINGS_SECTION.href}
+          label={SETTINGS_SECTION.label}
+          icon={SETTINGS_SECTION.icon}
+          active={active === 'settings'}
+        />
+      </div>
 
-      <div className="mt-auto hidden px-2 pb-1 md:block">
+      <div className="mt-auto hidden px-2.5 pt-8 md:block">
         <p className="truncate text-label text-text-muted">{companyName}</p>
         <p className="text-label text-text-faint">
           {roleLabel(role)} · {planLabel}
@@ -94,19 +105,19 @@ function NavItem({
       href={href}
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'row flex items-center gap-2.5 px-2 py-[7px] text-body',
+        'row flex items-center gap-3 px-2.5 py-2 text-body',
         active ? 'bg-surface-raised text-text' : 'text-text-secondary',
       )}
     >
       {Icon && (
         <Icon
-          size={15}
+          size={16}
           strokeWidth={1.75}
           aria-hidden
           className={active ? 'text-primary' : 'text-text-muted'}
         />
       )}
-      <span>{label}</span>
+      <span className="whitespace-nowrap">{label}</span>
       {count !== undefined && count > 0 && (
         <span className="nums ml-auto text-label text-text-muted">{count}</span>
       )}

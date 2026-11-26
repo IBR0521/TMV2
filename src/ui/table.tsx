@@ -176,7 +176,7 @@ export function SelectionBar({
   if (count === 0) return null;
 
   return (
-    <div className="sticky bottom-4 z-20 mx-5 flex flex-wrap items-center gap-3 rounded-lg border border-border-input bg-selected px-4 py-2.5">
+    <div className="sticky bottom-5 z-20 flex flex-wrap items-center gap-3 rounded-lg border border-border-input bg-selected px-5 py-3">
       <span className="text-body-strong">
         <span className="nums">{count}</span> selected
       </span>

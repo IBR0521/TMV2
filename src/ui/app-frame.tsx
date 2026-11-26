@@ -117,7 +117,7 @@ export function Workspace({
 }) {
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-5 pt-4 pb-3">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-8 pt-6 pb-4">
         <h1 className="text-page-title">{title}</h1>
         {count && <span className="nums text-body text-text-muted">{count}</span>}
         {subline && <span className="text-label text-text-muted">{subline}</span>}
@@ -125,7 +125,7 @@ export function Workspace({
       </div>
 
       {toolbar && (
-        <div className="flex flex-wrap items-center gap-2 border-b border-border px-5 pb-3">
+        <div className="flex flex-wrap items-center gap-2 border-b border-border px-8 pb-4">
           {toolbar}
         </div>
       )}
@@ -139,7 +139,7 @@ export function Workspace({
 export function Page({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-0 flex-1 overflow-auto">
-      <div className="mx-auto max-w-[1100px] px-5 py-5">{children}</div>
+      <div className="mx-auto max-w-[1060px] px-8 py-7">{children}</div>
     </div>
   );
 }
@@ -151,7 +151,7 @@ export function Page({ children }: { children: ReactNode }) {
  */
 export function SampleNotice({ phase, what }: { phase: string; what: string }) {
   return (
-    <div className="flex flex-wrap items-center gap-2 border-b border-border bg-surface px-5 py-2">
+    <div className="flex flex-wrap items-center gap-2.5 border-b border-border bg-surface px-8 py-2.5">
       <span className="rounded-chip bg-[var(--color-danger-fill)] px-2 py-0.5 text-label text-danger">
         Sample
       </span>

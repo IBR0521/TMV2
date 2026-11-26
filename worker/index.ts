@@ -31,11 +31,22 @@ async function main(): Promise<void> {
   });
 
   // Something has to be able to say "the worker is alive" — the health check
-  // its VPS and the end-to-end tests both wait on.
+  // its VPS and the end-to-end tests both wait on. It answers 503 the moment
+  // the runner stops, because a health endpoint that keeps saying "ok" after
+  // the worker has died is worse than none: the tests waited on it, and the
+  // jobs it promised to run were never going to run.
+  let consuming = true;
+
   const health = createServer((request, response) => {
     if (request.url?.startsWith('/health')) {
-      response.writeHead(200, { 'content-type': 'application/json' });
-      response.end(JSON.stringify({ status: 'ok', tasks: ['process_event', 'sweep_events'] }));
+      const status = consuming ? 200 : 503;
+      response.writeHead(status, { 'content-type': 'application/json' });
+      response.end(
+        JSON.stringify({
+          status: consuming ? 'ok' : 'stopped',
+          tasks: ['process_event', 'sweep_events'],
+        }),
+      );
       return;
     }
     response.writeHead(404).end();
@@ -56,7 +67,21 @@ async function main(): Promise<void> {
   process.on('SIGINT', () => void stop('SIGINT'));
   process.on('SIGTERM', () => void stop('SIGTERM'));
 
-  await runner.promise;
+  try {
+    await runner.promise;
+  } finally {
+    consuming = false;
+    health.close();
+  }
+
+  if (!stopping) {
+    // The runner ended without being asked to: a database that went away, or
+    // a graphile_worker schema it refuses to run against. Say so and exit
+    // non-zero instead of lingering as a process that answers requests but
+    // does no work.
+    console.error('worker: the job runner stopped on its own');
+    process.exit(1);
+  }
 }
 
 main().catch((error: unknown) => {

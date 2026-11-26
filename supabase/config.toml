@@ -209,7 +209,11 @@ anonymous_users = 30
 # Number of sessions that can be refreshed in a 5 minute interval per IP address.
 token_refresh = 150
 # Number of sign up and sign-in requests that can be made in a 5 minute interval per IP address (excludes anonymous users).
-sign_in_sign_ups = 30
+# Raised for the local stack only: one full run of the suite signs in around
+# thirty times in a few minutes (the seed, three carriers in tests/rls, and the
+# end-to-end run), which trips the default and fails a test for a reason that
+# has nothing to do with the code. Production rate limits are Supabase's own.
+sign_in_sign_ups = 300
 # Number of OTP / Magic link verifications that can be made in a 5 minute interval per IP address.
 token_verifications = 30
 # Number of Web3 logins that can be made in a 5 minute interval per IP address.
@@ -401,7 +405,11 @@ deno_version = 2
 # secret_key = "env(SECRET_VALUE)"
 
 [analytics]
-enabled = true
+# Off for the local stack: nothing in TruckMates reads local log analytics, and
+# the Logflare container (with the vector container behind it) is the slowest
+# thing in `supabase start` and the one that times out its health check.
+# Production errors go to Sentry.
+enabled = false
 port = 54327
 # Configure one of the supported backends: `postgres`, `bigquery`.
 backend = "postgres"

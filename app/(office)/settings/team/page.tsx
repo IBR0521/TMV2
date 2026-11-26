@@ -43,7 +43,7 @@ export default async function TeamPage() {
             <div className="text-right">
               <p className="text-body">{roleLabel(member.role)}</p>
               {member.status !== 'active' && (
-                <p className="text-label text-warning">{member.status}</p>
+                <p className="text-label text-danger">{member.status}</p>
               )}
             </div>
           </PanelRow>

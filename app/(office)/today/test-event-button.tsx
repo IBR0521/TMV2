@@ -32,7 +32,7 @@ export function TestEventButton() {
         {pending ? 'Sending…' : 'Send test event'}
       </Button>
       {error && (
-        <span role="alert" className="text-label text-warning">
+        <span role="alert" className="text-label text-danger">
           {error}
         </span>
       )}

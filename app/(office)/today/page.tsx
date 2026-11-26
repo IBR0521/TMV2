@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation';
 import { PageHeader } from '@/ui/page-header';
-import { Panel, PanelHeader } from '@/ui/panel';
 import { EmptyState } from '@/ui/empty-state';
 import { getContext } from '@/server/context';
 import { getCompany } from '@/server/services/companies';
@@ -14,8 +13,8 @@ export const metadata = { title: 'Today' };
 function longDate(now: Date, timeZone: string): string {
   return new Intl.DateTimeFormat('en-US', {
     weekday: 'long',
-    month: 'long',
     day: 'numeric',
+    month: 'long',
     timeZone,
   }).format(now);
 }
@@ -23,9 +22,9 @@ function longDate(now: Date, timeZone: string): string {
 /**
  * The Today inbox: the ready-made next steps the worker has put there.
  *
- * The summary strip and the Trucks panel from the approved mockup need loads
- * and trucks, so they arrive with phases 2 and 3. Phase 1 builds the "Needs
- * you" panel, live.
+ * The summary figures and the fleet column from the design need loads and
+ * trucks, so they arrive with phases 2 and 3. Phase 1 is the "Needs you" list,
+ * live over Realtime.
  */
 export default async function TodayPage() {
   const ctx = await getContext();
@@ -34,24 +33,32 @@ export default async function TodayPage() {
   const [company, suggestions] = await Promise.all([getCompany(ctx), listOpen(ctx)]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Today"
         subline={longDate(new Date(), company.timezone)}
         action={<TestEventButton />}
       />
 
-      <Panel>
-        <PanelHeader title="Needs you" count={suggestions.length} />
-        {suggestions.length === 0 ? (
-          <EmptyState
-            title="Nothing needs you"
-            detail="New loads, invoices to send and problems to fix show up here as they happen."
-          />
-        ) : (
-          <SuggestionList rows={suggestions} />
-        )}
-      </Panel>
+      <section>
+        <div className="flex items-baseline gap-2 px-2">
+          <h2 className="text-section-title">Needs you</h2>
+          <span className="nums text-label text-text-muted">{suggestions.length}</span>
+        </div>
+
+        <div className="mt-2">
+          {suggestions.length === 0 ? (
+            <div className="rounded-lg border border-border bg-surface">
+              <EmptyState
+                title="Nothing needs you"
+                detail="New loads, invoices to send and problems to fix show up here as they happen."
+              />
+            </div>
+          ) : (
+            <SuggestionList rows={suggestions} />
+          )}
+        </div>
+      </section>
 
       <SuggestionsLive companyId={ctx.companyId} />
     </div>

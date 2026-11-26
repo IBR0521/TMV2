@@ -38,7 +38,9 @@ export default async function OfficeLayout({ children }: { children: React.React
         planLabel={planLabel}
         todayCount={openCount}
       />
-      <main className="min-w-0 flex-1 px-5 py-6 md:px-9 md:py-7">{children}</main>
+      <main className="min-w-0 flex-1 px-5 py-6 md:px-8 md:py-8">
+        <div className="mx-auto max-w-[1180px]">{children}</div>
+      </main>
     </div>
   );
 }

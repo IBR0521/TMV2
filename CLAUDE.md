@@ -68,9 +68,10 @@ Read the relevant spec section before starting any task.
 - Paddle webhooks: verify the signature, ignore already-processed events.
 
 ### 7. UI (see design/README.md and docs/spec/approved-mockups.md)
-- Dark mode is the default. Geist for text, Geist Mono for money.
-- One primary (blue) button per screen: the next step for the record on screen.
-- A few panels with hairline dividers, not a wall of cards. Orange (warning) only for problems, always with words.
+- Dark mode is the default. Geist for text, Geist Mono for every figure.
+- One primary (amber) button per screen: the next step for the record on screen. Amber is the only saturated colour and is never decorative.
+- Depth comes from surface steps (bg, surface, surface-raised, selected), never shadows; hairlines are white at 7-16%, never drawn grey. Lists have no dividers: a row lifts onto surface-raised under the pointer.
+- Text runs in four tones (92/62/44/28% white) and weight stops at 500. Green means on route, on time, paid; red means late, overdue, unreadable, always with words.
 - One screen per thing: "new" and "edit" share one form. No separate add and create pages.
 - Each role sees only its own menu (owner 9 sections, dispatcher 5, accounting 8).
 - Every screen must work at phone width; the office app installs as a PWA.

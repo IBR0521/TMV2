@@ -105,6 +105,39 @@ and phone width and match the approved style.
 - **Sentry** is wired and silent: no DSN yet.
 - The PWA manifest ships an SVG icon only; proper PNG icons are still to come.
 
+### The look was reworked on 26 November 2026
+
+The owner rejected the v1 navy-and-blue system and the three layout variations
+that followed it. What shipped instead, after reading how dark product software
+is actually constructed:
+
+- `design/tokens.json` is version 2. Depth is four surface steps (`bg`,
+  `surface`, `surface-raised`, `selected`), hairlines are white at 7-16% rather
+  than drawn grey, text runs in four tones (92/62/44/28%), and weight stops at
+  500.
+- Sodium amber is the one saturated colour: the next step on a screen and the
+  active section, never decoration. Guide green and signal red are state only.
+- Lists carry no dividers; a row lifts onto `surface-raised` under the pointer.
+- Figures are mono and tabular throughout. Selection, focus rings and
+  scrollbars are themed rather than left to the browser.
+- `design/README.md` is rewritten around all of it, `CLAUDE.md` rule 7 now
+  matches, and `docs/spec/approved-mockups.md` carries a note that its colour
+  names describe the first draft while what each screen *shows* still stands.
+- `/design/a|b|c|d` are development-only preview routes that carry the sample
+  figures from the approved mockup. `d` is what shipped; the rest are kept only
+  for comparison and should be deleted once nobody needs them.
+
+Two local-stack problems surfaced while verifying and are fixed in
+`supabase/config.toml`: the auth rate limit (30 sign-ins per 5 minutes) was
+tripping intermittently because one full run of the suite signs in around thirty
+times, and the Logflare analytics container times out its health check on
+restart and is not used by anything here.
+
+Still open from the rework: a phone has no navigation yet (the sidebar simply
+hides below `md`), and Today has no summary figures or fleet column because
+loads and trucks do not exist until phases 2 and 3 — the design preview shows
+them with sample data, the real screen cannot.
+
 ### Decisions taken while building
 
 1. **TypeScript 5.9.3, not 7.0.2.** 7.0.2 is the current stable, but

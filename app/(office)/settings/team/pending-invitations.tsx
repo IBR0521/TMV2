@@ -27,7 +27,7 @@ export function PendingInvitations({ invitations }: { invitations: Invitation[] 
   return (
     <div data-testid="pending-invitations">
       {error && (
-        <p role="alert" className="border-b border-border px-5 py-3 text-label text-warning">
+        <p role="alert" className="border-b border-border px-5 py-3 text-label text-danger">
           {error}
         </p>
       )}

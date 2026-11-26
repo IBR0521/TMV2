@@ -3,9 +3,9 @@ import Link from 'next/link';
 import { cn } from './cn';
 
 /**
- * A few panels with hairline dividers, not a wall of cards
- * (design/README.md, principle 2): surface fill, one hairline outline,
- * radius-lg, and rows inside split by 1px lines.
+ * A panel is a surface one step above the page with a hairline edge, not a box
+ * drawn in grey. Its rows carry no dividers: they separate by lifting under
+ * the pointer (design/README.md).
  */
 export function Panel({ className, children }: { className?: string; children: ReactNode }) {
   return (
@@ -25,13 +25,13 @@ export function PanelHeader({
   link?: { label: string; href: string };
 }) {
   return (
-    <header className="flex items-center justify-between gap-3 border-b border-border px-5 py-3.5">
-      <h2 className="text-section-title">
+    <header className="flex items-center justify-between gap-3 px-4 pt-3.5 pb-2">
+      <h2 className="flex items-baseline gap-2 text-section-title">
         {title}
-        {count !== undefined && <span className="ml-2 text-label text-text-muted">{count}</span>}
+        {count !== undefined && <span className="nums text-label text-text-muted">{count}</span>}
       </h2>
       {link && (
-        <Link href={link.href} className="text-label text-link hover:underline">
+        <Link href={link.href} className="text-label text-text-muted hover:text-text">
           {link.label}
         </Link>
       )}
@@ -39,21 +39,20 @@ export function PanelHeader({
   );
 }
 
-/** One fact-line row. Rows are separated by lines, never by gaps. */
-export function PanelRow({
-  className,
-  children,
-}: {
-  className?: string;
-  children: ReactNode;
-}) {
+/** One fact-line row. Lifts under the pointer; never bordered. */
+export function PanelRow({ className, children }: { className?: string; children: ReactNode }) {
   return (
-    <div className={cn('flex items-center justify-between gap-4 border-b border-border px-5 py-4 last:border-b-0', className)}>
+    <div className={cn('row mx-2 flex items-center justify-between gap-4 px-2 py-2.5', className)}>
       {children}
     </div>
   );
 }
 
 export function PanelBody({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cn('px-5 py-4', className)}>{children}</div>;
+  return <div className={cn('px-4 pt-1 pb-4', className)}>{children}</div>;
+}
+
+/** The bottom edge of a panel that ends in rows, so the last row can breathe. */
+export function PanelFoot() {
+  return <div className="h-2" />;
 }

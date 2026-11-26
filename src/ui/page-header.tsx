@@ -1,11 +1,9 @@
 import { type ReactNode } from 'react';
 import { Search } from 'lucide-react';
-import { ICON_STROKE } from './icons';
 
 /**
- * Every office page starts the same way (docs/spec/approved-mockups.md,
- * Shared office layout): the title and a muted subline on the left, the global
- * search field and this screen's one primary button on the right.
+ * Every office page starts the same way: the title and a muted subline on the
+ * left, the global search and this screen's one primary button on the right.
  */
 export function PageHeader({
   title,
@@ -20,10 +18,10 @@ export function PageHeader({
     <header className="flex flex-wrap items-start justify-between gap-4">
       <div className="min-w-0">
         <h1 className="text-page-title">{title}</h1>
-        {subline && <p className="mt-0.5 text-label text-text-muted">{subline}</p>}
+        {subline && <p className="mt-1 text-label text-text-muted">{subline}</p>}
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         <GlobalSearch />
         {action}
       </div>
@@ -39,8 +37,8 @@ function GlobalSearch() {
   return (
     <div className="relative">
       <Search
-        size={15}
-        strokeWidth={ICON_STROKE}
+        size={14}
+        strokeWidth={1.75}
         className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-text-muted"
         aria-hidden
       />
@@ -48,8 +46,8 @@ function GlobalSearch() {
         type="search"
         data-testid="global-search"
         aria-label="Search loads, drivers, invoices"
-        placeholder="Search loads, drivers, invoices"
-        className="h-[38px] w-full min-w-0 rounded-md border border-input bg-surface pr-3 pl-9 text-body text-text focus:border-primary focus:outline-none sm:w-[280px]"
+        placeholder="Search"
+        className="h-9 w-full min-w-0 rounded-md bg-surface pr-3 pl-8 text-body text-text transition-colors hover:bg-surface-raised focus:bg-surface-raised focus:outline-none sm:w-[200px]"
       />
     </div>
   );

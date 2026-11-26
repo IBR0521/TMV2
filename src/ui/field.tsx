@@ -2,8 +2,8 @@ import { type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } f
 import { cn } from './cn';
 
 const CONTROL =
-  'h-9 w-full rounded-md border border-input bg-surface px-3 text-body text-text ' +
-  'focus:border-primary focus:outline-none';
+  'h-9 w-full rounded-md border border-input bg-surface-raised px-3 text-body text-text ' +
+  'transition-colors focus:border-primary focus:outline-none';
 
 export function Field({
   label,
@@ -18,12 +18,12 @@ export function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-label text-text-muted">{label}</span>
+      <span className="mb-1.5 block text-label text-text-muted">{label}</span>
       {children}
       {error ? (
-        <span className="mt-1 block text-label text-warning">{error}</span>
+        <span className="mt-1.5 block text-label text-danger">{error}</span>
       ) : (
-        hint && <span className="mt-1 block text-label text-text-muted">{hint}</span>
+        hint && <span className="mt-1.5 block text-label text-text-faint">{hint}</span>
       )}
     </label>
   );

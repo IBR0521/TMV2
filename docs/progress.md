@@ -33,8 +33,8 @@ pull request yet.
    and customer list for both carriers, with paperwork dated relative to the
    day the seed runs so the expiry chips are alive.
 
-All green: typecheck, lint, UI guard (122 files), 168 unit and action tests,
-210 RLS tests, 4 end-to-end, 4 visual, production build. The visual baselines
+All green: typecheck, lint, UI guard (124 files), 169 unit and action tests,
+220 RLS tests, 4 end-to-end, 4 visual, production build. The visual baselines
 are untouched.
 
 5. **The expiring paperwork rule.** A card on Today 30 days before a CDL,
@@ -115,6 +115,20 @@ rather than lingering as something that answers requests but does no work.
    preview would have to read the existing list to know. Worth doing if it
    bothers anyone.
 
+9. **Uploads.** A private `documents` bucket, isolated the way the tables are:
+   every object's path begins with the company id and the storage policies
+   only let a session touch its own company's folder. Ten new tests prove it —
+   cross-tenant write, read, list, delete and signed link all refused, drivers
+   locked out until phase 4, and a path that is not a company id refused
+   rather than raising.
+
+   The browser asks where to put a file, uploads there, then asks for the row,
+   so it never chooses its own path and the object is named with a uuid rather
+   than the carrier's own file name. Removing a document takes the compliance
+   row, the file row and the stored object together — checked end to end in
+   the browser. `files` became deletable to allow that; phase 1 had not
+   anticipated uploads.
+
 ### Something missing that nobody has asked for yet
 
 **There is no way to sign out.** Phase 1 built sign-in and never built its
@@ -155,7 +169,7 @@ before the forms multiply.
 
 ### Next
 
-Uploads, the setup wizard and global search. The owner decided on 26 November 2026 to leave the
+The setup wizard and global search. The owner decided on 26 November 2026 to leave the
 form-level error as it is.
 
 ### Waiting on the owner

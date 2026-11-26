@@ -33,8 +33,9 @@ pull request yet.
    and customer list for both carriers, with paperwork dated relative to the
    day the seed runs so the expiry chips are alive.
 
-All green: typecheck, lint, UI guard (118 files), 152 unit and action tests,
-210 RLS tests, 4 end-to-end, 4 visual. The visual baselines are untouched.
+All green: typecheck, lint, UI guard (122 files), 168 unit and action tests,
+210 RLS tests, 4 end-to-end, 4 visual, production build. The visual baselines
+are untouched.
 
 5. **The expiring paperwork rule.** A card on Today 30 days before a CDL,
    medical card, registration, insurance or inspection expires, and a second
@@ -93,6 +94,27 @@ rather than lingering as something that answers requests but does no work.
    below). It never overwrites a name already typed, and every failure falls
    back to the manual form. Checked in the browser against the real service.
 
+8. **The spreadsheet import.** Trucks, drivers and customers from a carrier's
+   own export, with column matching, a preview and the company's choices
+   remembered. The file is read in the browser and never uploaded; the server
+   re-reads the cells with the same pure functions the preview used, so the
+   preview is honest and the server is still the authority. Nothing is ever
+   updated: a row already on the list is skipped and said so. A sheet that
+   would pass the plan's truck limit is refused whole.
+
+   `src/domain/csv.ts` is written rather than installed — quoted fields,
+   doubled quotes, the byte-order mark, CRLF — with fifteen tests.
+   `read-excel-file` (MIT, current, no advisories) reads .xlsx and is loaded
+   only when somebody opens one.
+
+   Checked in the browser with a 21-row export: 19 added, 1 already on the
+   list, 1 rejected for a short VIN, flagged on its own line beforehand.
+
+   **Rough edge:** the preview marks a row "Ready" even when that unit number
+   is already on the list; only the result afterwards says it was skipped. The
+   preview would have to read the existing list to know. Worth doing if it
+   bothers anyone.
+
 ### Something missing that nobody has asked for yet
 
 **There is no way to sign out.** Phase 1 built sign-in and never built its
@@ -133,7 +155,7 @@ before the forms multiply.
 
 ### Next
 
-The spreadsheet import, uploads, the setup wizard and global search. The owner decided on 26 November 2026 to leave the
+Uploads, the setup wizard and global search. The owner decided on 26 November 2026 to leave the
 form-level error as it is.
 
 ### Waiting on the owner

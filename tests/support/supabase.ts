@@ -178,6 +178,27 @@ async function fillEveryTenantTable(
     .single();
   if (customer.error) throw new Error(`customer: ${customer.error.message}`);
 
+  // Phase 3. A draft load with a stop, a charge, state miles and a document,
+  // so the isolation sweep has something to aim at in each of them.
+  const load = await admin
+    .from('loads')
+    .insert({ company_id: companyId, load_number: 'FIXTURE-1', status: 'draft' })
+    .select('id')
+    .single();
+  if (load.error) throw new Error(`load: ${load.error.message}`);
+
+  const fixtureFile = await admin
+    .from('files')
+    .insert({
+      company_id: companyId,
+      storage_path: `${companyId}/fixture-document.pdf`,
+      mime: 'application/pdf',
+      size_bytes: 2048,
+    })
+    .select('id')
+    .single();
+  if (fixtureFile.error) throw new Error(`document file: ${fixtureFile.error.message}`);
+
   const rows = await Promise.all([
     admin.from('suggestions').insert({
       company_id: companyId,
@@ -230,6 +251,30 @@ async function fillEveryTenantTable(
       company_id: companyId,
       kind: 'trucks',
       columns: { 'Unit #': 'unit_number' },
+    }),
+    admin.from('load_stops').insert({
+      company_id: companyId,
+      load_id: load.data.id,
+      seq: 1,
+      type: 'pickup',
+    }),
+    admin.from('load_charges').insert({
+      company_id: companyId,
+      load_id: load.data.id,
+      kind: 'linehaul',
+      amount_cents: 250_000,
+    }),
+    admin.from('load_state_miles').insert({
+      company_id: companyId,
+      load_id: load.data.id,
+      state: 'TX',
+      miles: 120,
+    }),
+    admin.from('documents').insert({
+      company_id: companyId,
+      file_id: fixtureFile.data.id,
+      kind: 'rate_con',
+      load_id: load.data.id,
     }),
   ]);
 

@@ -2,7 +2,8 @@
 
 ## Phase 2 — Fleet and customers
 
-**Status: in progress on branch `phase-2-fleet`, steps 1 to 4 of 12 done.**
+**Status: in progress on branch `phase-2-fleet`. All seven screens are built;
+the automation, import and setup work is still to come.**
 The plan was approved on 26 November 2026. Nothing is pushed and there is no
 pull request yet.
 
@@ -24,13 +25,27 @@ pull request yet.
    `facilities.ts`, thin wrappers whose schemas carry no company_id. The truck
    limit lives in `src/domain/plan.ts` so it can be tested without a database:
    no limit during the trial, an already-active truck does not count twice.
-4. **The Fleet screens.** Drivers, the driver page, trucks and trailers in one
-   list with a toggle, and the unit page. One compliance panel serves drivers,
-   trucks and trailers. One form each for new and edit. Seeded demo fleet for
-   both carriers, with paperwork dated relative to the day the seed runs.
+4. **All seven screens**, from the patterns in design/KIT.md, assembled only
+   from `@/ui`: Drivers, the driver page, trucks and trailers in one list with
+   a toggle, the unit page, Customers, the customer page with its contacts,
+   and Facilities with the facility page. One compliance panel serves drivers,
+   trucks and trailers; one form each serves new and edit. Seeded demo fleet
+   and customer list for both carriers, with paperwork dated relative to the
+   day the seed runs so the expiry chips are alive.
 
-All green: typecheck, lint, UI guard (105 files), 110 unit and action tests,
+All green: typecheck, lint, UI guard (116 files), 123 unit and action tests,
 210 RLS tests, 4 end-to-end, 4 visual. The visual baselines are untouched.
+
+### What the screens deliberately do not show
+
+- **The customer scorecard** (pay speed, detention history) is read from
+  invoices and loads, so it waits for phases 3 and 5 — and "New load", the
+  primary action the spec gives the customer page, waits with it.
+- **The facility map.** A chip and the coordinates, not a map: the pin that
+  corrects a bad geocode is a later step and the basemap is still undecided.
+  A map that cannot be corrected would be worse than none.
+- **Which truck a driver is driving.** We know which truck they *own*;
+  assignment arrives with loads in phase 3, so the column says "Truck owned".
 
 ### Two deliberate departures from the spec
 
@@ -62,8 +77,9 @@ before the forms multiply.
 
 ### Next
 
-Customers, the customer page and facilities, then uploads, import, FMCSA,
-geocoding, the wizard, the expiry rule and search.
+Uploads, the spreadsheet import, FMCSA DOT autofill, geocoding, the setup
+wizard, the compliance.expiring rule and global search. The owner decided on
+26 November 2026 to leave the form-level error as it is.
 
 ### Waiting on the owner
 

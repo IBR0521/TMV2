@@ -3,6 +3,7 @@ import { config as loadEnv } from 'dotenv';
 import { run, type Runner } from 'graphile-worker';
 import { connectionString } from './db';
 import { checkComplianceExpiry } from './tasks/check-compliance-expiry';
+import { geocodeFacilities } from './tasks/geocode-facilities';
 import { processEvent } from './tasks/process-event';
 import { sweepEvents } from './tasks/sweep-events';
 
@@ -27,12 +28,19 @@ async function main(): Promise<void> {
       process_event: processEvent,
       sweep_events: sweepEvents,
       check_compliance_expiry: checkComplianceExpiry,
+      geocode_facilities: geocodeFacilities,
     },
     // Scheduled tasks replace cron (CLAUDE.md, rule 4). The expiry check runs
     // at 11:00 UTC: before the working day starts anywhere in the US, so a
     // card about a medical card expiring this week is on Today when the
     // office opens rather than halfway through the morning.
-    crontab: ['*/5 * * * * sweep_events', '0 11 * * * check_compliance_expiry'].join('\n'),
+    crontab: [
+      '*/5 * * * * sweep_events',
+      '0 11 * * * check_compliance_expiry',
+      // The trigger queues this the moment a facility is saved; the schedule
+      // is for rows saved while the worker was down.
+      '*/15 * * * * geocode_facilities',
+    ].join('\n'),
   });
 
   // Something has to be able to say "the worker is alive" — the health check
@@ -49,7 +57,12 @@ async function main(): Promise<void> {
       response.end(
         JSON.stringify({
           status: consuming ? 'ok' : 'stopped',
-          tasks: ['process_event', 'sweep_events', 'check_compliance_expiry'],
+          tasks: [
+            'process_event',
+            'sweep_events',
+            'check_compliance_expiry',
+            'geocode_facilities',
+          ],
         }),
       );
       return;

@@ -137,12 +137,17 @@ export const ALPHA_FLEET: FleetSeed = {
       freeMinutes: 120,
       coords: { lat: 33.75, lng: -84.56 },
     },
+    // A real address, so the demo shows the geocoding job doing its job: it
+    // starts pending and the worker places it.
     {
       name: 'Memphis Rail Yard',
-      address: '3200 Channel Avenue, Memphis, TN 38113',
+      address: '4001 Delp Street, Memphis, TN 38118',
       timezone: 'America/Chicago',
       freeMinutes: 90,
     },
+    // Deliberately an address the US Census geocoder cannot find, so the
+    // "Address not found" state — the one the office fixes by hand — is
+    // visible in the demo rather than only in a test.
     {
       name: 'Denver Retail DC',
       address: '12500 East 40th Avenue, Denver, CO 80239',

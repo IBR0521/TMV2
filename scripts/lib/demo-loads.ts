@@ -156,10 +156,20 @@ export const ALPHA_LOADS: LoadSeed[] = [
   },
 ];
 
+/**
+ * The hour in the seed is the hour at the dock, not in UTC.
+ *
+ * Every demo facility is Central, so six hours are added to get the instant.
+ * Crude — it ignores daylight saving — but this is demo data, and a pickup
+ * that reads "02:00" on screen because the seed meant 08:00 Central is worse
+ * than crude.
+ */
+const CENTRAL_OFFSET_HOURS = 6;
+
 function at(inDays: number, hour: number): string {
   const when = new Date();
   when.setUTCDate(when.getUTCDate() + inDays);
-  when.setUTCHours(hour, 0, 0, 0);
+  when.setUTCHours(hour + CENTRAL_OFFSET_HOURS, 0, 0, 0);
   return when.toISOString();
 }
 
@@ -175,6 +185,18 @@ export async function seedLoads(
 
   if (existing.error) throw new Error(`loads: ${existing.error.message}`);
   if ((existing.count ?? 0) > 0) return { added: 0 };
+
+  // audit_log refuses an entry attributed to a user without naming one
+  // (phase 1's audit_log_user_has_actor). The owner is who would have done
+  // this work, so the history is attributed to them.
+  const owner = await c.admin
+    .from('memberships')
+    .select('user_id')
+    .eq('company_id', companyId)
+    .eq('role', 'owner')
+    .limit(1)
+    .single();
+  if (owner.error) throw new Error(`owner: ${owner.error.message}`);
 
   const [customers, drivers, trucks, facilities, sequence] = await Promise.all([
     c.admin.from('customers').select('id, name').eq('company_id', companyId),
@@ -251,6 +273,38 @@ export async function seedLoads(
       })),
     );
     if (charges.error) throw new Error(`charges for ${next}: ${charges.error.message}`);
+
+    // The timeline reads the audit log, and a load inserted straight into the
+    // database has none. These are the entries the services would have
+    // written had somebody done it through the screens.
+    const story: { action: string; inDays: number; hour: number }[] = [
+      { action: 'load.created', inDays: seed.stops[0]!.inDays - 1, hour: 16 },
+      { action: 'load.booked', inDays: seed.stops[0]!.inDays - 1, hour: 16 },
+    ];
+    if (assigned) story.push({ action: 'load.assigned', inDays: seed.stops[0]!.inDays - 1, hour: 17 });
+    if (seed.status === 'dispatched' || seed.status === 'in_transit' || seed.status === 'delivered') {
+      story.push({ action: 'load.dispatched', inDays: seed.stops[0]!.inDays - 1, hour: 17 });
+    }
+    if (seed.status === 'in_transit' || seed.status === 'delivered') {
+      story.push({ action: 'load.in_transit', inDays: seed.stops[0]!.inDays, hour: 9 });
+    }
+    if (seed.status === 'delivered') {
+      const last = seed.stops[seed.stops.length - 1]!;
+      story.push({ action: 'load.delivered', inDays: last.inDays, hour: last.hour + 1 });
+    }
+
+    const history = await c.admin.from('audit_log').insert(
+      story.map((entry) => ({
+        company_id: companyId,
+        actor_type: 'user' as const,
+        actor_id: owner.data.user_id,
+        action: entry.action,
+        subject_type: 'load',
+        subject_id: load.data.id,
+        created_at: at(entry.inDays, entry.hour),
+      })),
+    );
+    if (history.error) throw new Error(`history for ${next}: ${history.error.message}`);
 
     next += 1;
     added += 1;

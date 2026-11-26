@@ -3,53 +3,76 @@
 import { useMemo, useState } from 'react';
 import {
   Amount,
-  Button,
   type Column,
   DataTable,
   Panel,
   PanelHeader,
-  SelectionBar,
   type Sort,
   StatusChip,
   TextLink,
 } from '@/ui';
-import { STATUS_LABEL, type SampleLoad } from './_sample';
+import { loadStatusLabel } from '@/domain/load';
+import type { LoadRow } from '@/server/services/loads';
 
 /**
- * The loads list: sorting and selection live here, the markup is the kit's.
- * Saved views are links on the page, so a view can be shared and the back
- * button works; only sorting and selection need state.
+ * The loads list: sorting lives here, the markup is the kit's. Saved views are
+ * links on the page, so a view can be shared and the back button works; only
+ * sorting needs state.
  */
-const COLUMNS: Column<SampleLoad>[] = [
+function lane(load: LoadRow): string {
+  if (load.from === null && load.to === null) return 'No stops yet';
+  return `${load.from ?? '—'} → ${load.to ?? '—'}`;
+}
+
+function day(iso: string | null): string {
+  if (iso === null) return '—';
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date(iso));
+}
+
+const COLUMNS: Column<LoadRow>[] = [
   {
     key: 'number',
     header: 'Load',
-    render: (load) => <TextLink href={`/loads/${load.number}`}>#{load.number}</TextLink>,
+    render: (load) => <TextLink href={`/loads/${load.id}`}>#{load.loadNumber}</TextLink>,
   },
   {
     key: 'status',
     header: 'Status',
     render: (load) =>
-      load.late ? (
-        <StatusChip tone="warning" dot>
-          Late
-        </StatusChip>
+      load.status === 'cancelled' ? (
+        <StatusChip tone="warning">Cancelled</StatusChip>
       ) : (
         <StatusChip tone={load.status === 'delivered' ? 'idle' : 'normal'}>
-          {STATUS_LABEL[load.status]}
+          {loadStatusLabel(load.status)}
         </StatusChip>
       ),
   },
-  { key: 'customer', header: 'Customer', sortable: true, render: (load) => load.customer },
-  { key: 'lane', header: 'Lane', render: (load) => `${load.from} → ${load.to}` },
-  { key: 'pickup', header: 'Pickup', sortable: true, render: (load) => load.pickup },
+  { key: 'customer', header: 'Customer', sortable: true, render: (load) => load.customerName ?? '—' },
+  { key: 'lane', header: 'Lane', render: lane },
+  { key: 'pickup', header: 'Pickup', sortable: true, render: (load) => day(load.firstPickupAt) },
   {
     key: 'driver',
     header: 'Driver',
     render: (load) =>
-      load.driver ? `${load.unit} · ${load.driver}` : <span className="text-text-muted">Unassigned</span>,
+      load.driverName === null ? (
+        <span className="text-text-muted">Unassigned</span>
+      ) : (
+        `${load.truckUnit ?? '—'} · ${load.driverName}`
+      ),
   },
-  { key: 'miles', header: 'Miles', align: 'right', sortable: true, render: (load) => load.miles },
+  {
+    key: 'miles',
+    header: 'Miles',
+    align: 'right',
+    sortable: true,
+    render: (load) => (load.totalMiles === null ? '—' : load.totalMiles.toLocaleString('en-US')),
+  },
   {
     key: 'rate',
     header: 'Rate',
@@ -57,24 +80,32 @@ const COLUMNS: Column<SampleLoad>[] = [
     sortable: true,
     render: (load) => <Amount cents={load.rateCents} decimals={false} />,
   },
+  {
+    key: 'profit',
+    header: 'Est. profit',
+    align: 'right',
+    sortable: true,
+    render: (load) => <Amount cents={load.estimate.profitCents} decimals={false} />,
+  },
 ];
 
-export function LoadsList({ rows, title }: { rows: SampleLoad[]; title: string }) {
+export function LoadsList({ rows, title }: { rows: LoadRow[]; title: string }) {
   const [sort, setSort] = useState<Sort>({ key: 'pickup', direction: 'asc' });
-  const [selected, setSelected] = useState<string[]>([]);
 
   const sorted = useMemo(() => {
     const factor = sort.direction === 'asc' ? 1 : -1;
     return [...rows].sort((a, b) => {
       switch (sort.key) {
         case 'customer':
-          return a.customer.localeCompare(b.customer) * factor;
+          return (a.customerName ?? '').localeCompare(b.customerName ?? '') * factor;
         case 'miles':
-          return (a.miles - b.miles) * factor;
+          return ((a.totalMiles ?? 0) - (b.totalMiles ?? 0)) * factor;
         case 'rate':
           return (a.rateCents - b.rateCents) * factor;
+        case 'profit':
+          return (a.estimate.profitCents - b.estimate.profitCents) * factor;
         default:
-          return a.pickup.localeCompare(b.pickup) * factor;
+          return (a.firstPickupAt ?? '').localeCompare(b.firstPickupAt ?? '') * factor;
       }
     });
   }, [rows, sort]);
@@ -90,34 +121,12 @@ export function LoadsList({ rows, title }: { rows: SampleLoad[]; title: string }
   return (
     <Panel label="Loads">
       <PanelHeader title={title} count={rows.length} />
-
-      <SelectionBar count={selected.length}>
-        <Button size="sm" onClick={() => setSelected([])}>
-          Clear
-        </Button>
-        <Button size="sm">Assign driver</Button>
-        <Button size="sm" variant="primary">
-          Create invoices
-        </Button>
-      </SelectionBar>
-
       <DataTable
         columns={COLUMNS}
         rows={sorted}
         rowKey={(load) => load.id}
         sort={sort}
         onSort={onSort}
-        selected={selected}
-        onSelect={(key) =>
-          setSelected((current) =>
-            current.includes(key) ? current.filter((id) => id !== key) : [...current, key],
-          )
-        }
-        onSelectAll={() =>
-          setSelected((current) =>
-            current.length === sorted.length ? [] : sorted.map((load) => load.id),
-          )
-        }
       />
     </Panel>
   );

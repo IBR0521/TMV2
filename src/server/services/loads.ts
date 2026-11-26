@@ -643,3 +643,60 @@ export async function removeCharge(ctx: Ctx, chargeId: string): Promise<void> {
   if (error) fail(error, 'That charge could not be removed.');
   if (data === null) throw new ActionError('That charge no longer exists.');
 }
+
+// ---------------------------------------------------------------------------
+// What happened to a load
+// ---------------------------------------------------------------------------
+export type TimelineEntry = { at: string; what: string };
+
+const AUDIT_WORDS: Record<string, string> = {
+  'load.created': 'Created',
+  'load.updated': 'Details changed',
+  'load.booked': 'Booked',
+  'load.dispatched': 'Dispatched',
+  'load.in_transit': 'Picked up',
+  'load.delivered': 'Delivered',
+  'load.cancelled': 'Cancelled',
+  'load.assigned': 'Driver and truck assigned',
+};
+
+/**
+ * The load's own history, read from the audit log rather than kept a second
+ * time on the load.
+ *
+ * The audit log is append-only and already records who did what, so a separate
+ * history column could only ever disagree with it. Check calls join this list
+ * in their own step; stop times are already in it.
+ */
+export async function timeline(ctx: Ctx, loadId: string): Promise<TimelineEntry[]> {
+  const { data: stops, error: stopsError } = await ctx.db
+    .from('load_stops')
+    .select('id')
+    .eq('company_id', ctx.companyId)
+    .eq('load_id', loadId);
+
+  if (stopsError) fail(stopsError, 'The history could not be read.');
+
+  const subjectIds = [loadId, ...stops.map((stop) => stop.id)];
+
+  const { data, error } = await ctx.db
+    .from('audit_log')
+    .select('action, created_at, after')
+    .eq('company_id', ctx.companyId)
+    .in('subject_id', subjectIds)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) fail(error, 'The history could not be read.');
+
+  return data.map((row) => ({
+    at: row.created_at,
+    what: AUDIT_WORDS[row.action] ?? friendly(row.action),
+  }));
+}
+
+/** An action nobody has written words for is shown as itself, not hidden. */
+function friendly(action: string): string {
+  const words = action.split('.').pop() ?? action;
+  return words.charAt(0).toUpperCase() + words.slice(1).replace(/_/g, ' ');
+}

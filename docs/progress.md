@@ -2,9 +2,12 @@
 
 ## Phase 1 — Foundation
 
-**Status: built and verified locally, waiting for the owner's review.** Branch
-`phase-1-foundation`. Every "done when" item is true except the last one, CI,
-which cannot run until there is a GitHub remote. Nothing of phase 2 has been
+**Status: built, verified, CI green, waiting for the owner's merge.** Branch
+`phase-1-foundation`, pull request IBR0521/TMV2#1. Every "done when" item is
+true, the last one included: CI ran for the first time on 26 November 2026 and
+both jobs passed. Typecheck, lint, the UI guard and the 43 unit and action
+tests in 42s; migrations from an empty database, seed, 129 RLS tests, 4
+end-to-end tests and 4 visual tests in 2m45s. Nothing of phase 2 has been
 started.
 
 ### What is there
@@ -99,9 +102,10 @@ and phone width and match the approved style.
 
 ### What is still not done
 
-- **CI has never run.** There is no GitHub remote, so the workflow in
-  `.github/workflows/ci.yml` has never executed. This is the last unticked item
-  on the phase 1 "done when" list.
+- **Nothing is deployed.** Everything runs on the owner's machine: the local
+  Supabase stack, the dev server and the worker. There is no Supabase cloud
+  project, no Vercel deployment and no public URL. Phase 1 does not ask for
+  one, but nobody off this machine can look until there is.
 - **Sentry** is wired and silent: no DSN yet.
 - The PWA manifest ships an SVG icon only; proper PNG icons are still to come.
 
@@ -214,12 +218,18 @@ swaps the data underneath and the screens do not change.
 11. **`.claude/launch.json`** is a one-entry file so the app can be previewed in
     a browser pane with a single command. It changes nothing about the app.
 12. **Invitations are links, as agreed**, for every role. Email delivery waits
-    for Resend in phase 5. Icons are Lucide, as agreed.
+    for Resend in phase 5. Icons are the kit's own: 19 line SVGs in
+    `src/ui/icons.tsx`, stroke 1.8 on currentColor, no icon library installed.
 
 ### Open questions
 
-One thing is needed from the owner: **a GitHub repository**, so CI can run.
-The branch is local only; there is no remote.
+None blocking. The repository exists, both branches are pushed, CI is green
+and pull request 1 is open.
+
+Two things are the owner's to decide, whenever they want them: whether to
+stand up the cloud accounts in `docs/owner-setup.md` (Supabase, Vercel,
+Sentry) so this can be opened from somewhere other than this laptop, and the
+shape of phase 2 once the plan is on the table.
 
 ### Running it yourself
 
@@ -237,5 +247,6 @@ rest, all with the password printed by the seed. Local development only.
 To run the checks: `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm test:rls`,
 `pnpm e2e`.
 
-Then the review list in `docs/owner-setup.md`. **Phase 2 does not start until
-the owner says so.**
+Then the review list in `docs/owner-setup.md`. The owner gave the go-ahead for
+phase 2 on 26 November 2026, conditional on this pull request being merged.
+**The plan is shown and approved before any phase 2 code is written.**

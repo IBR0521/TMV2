@@ -1,5 +1,55 @@
 # Progress
 
+## Phase 2 — Fleet and customers
+
+**Status: in progress on branch `phase-2-fleet`, steps 1 and 2 of 12 done.**
+The plan was approved on 26 November 2026. Nothing is pushed and there is no
+pull request yet.
+
+### Done
+
+1. **Schema.** `drivers`, `trucks`, `trailers`, `compliance_documents`,
+   `customers`, `customer_contacts`, `facilities`, `import_mappings`, and the
+   global `fmcsa_carriers`. All applied from an empty database. The isolation
+   sweep found the eight tenant tables on its own: 210 RLS tests, up from 129.
+   The driver policies are tested rather than assumed — the fixture now ties a
+   driver login to a driver row, so a driver provably reads its own row and its
+   own paperwork, cannot change that paperwork, and sees nothing in the other
+   six tables.
+2. **Domain rules.** `src/domain/fleet.ts`, `customers.ts` and
+   `spreadsheet.ts`: expiry, labels, the tidying of VIN, phone, MC and email,
+   and the column matching the import needs. 58 new tests, 101 in all.
+
+### Two deliberate departures from the spec
+
+- **`compliance_documents` has no polymorphic `subject_id`.** The spec
+  describes subject_type plus subject_id; a polymorphic key can carry no
+  foreign key, and CLAUDE.md rule 1 requires composite keys between tenant
+  tables. So the subject is three nullable keys with "exactly one" enforced,
+  and `subject_type` and `subject_id` are generated from them. Reads look as
+  the spec says; a document cannot point at a row that does not exist.
+- **`import_mappings` is a table the spec's 37 do not include.** The import has
+  to remember each company's column choices and they need somewhere to live.
+
+### Next
+
+Services and actions, then the seven screens from the kit, then uploads,
+import, FMCSA, geocoding, the wizard, the expiry rule and search.
+
+### Waiting on the owner
+
+- **The basemap.** The facility map exists only so a pin can be dragged when
+  geocoding misses. Protomaps' planet file is 100–130GB; their hosted tiles
+  are free for non-commercial use and ask for sponsorship commercially. The
+  recommendation is a US extract at a capped zoom served from Supabase
+  Storage, measured before it is committed to; if it comes out too large, the
+  pin waits for phase 7 and phase 2 confirms addresses as text. No paid tile
+  service without asking.
+- **The MC number.** The FMCSA census file may not carry docket numbers. If it
+  does not, the DOT lookup fills name and address and the MC stays a typed
+  field — a second federal data source would be a new dependency and needs
+  approval.
+
 ## Phase 1 — Foundation
 
 **Status: built, verified, CI green, waiting for the owner's merge.** Branch

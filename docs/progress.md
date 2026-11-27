@@ -1,5 +1,70 @@
 # Progress
 
+## Phase 3a — Loads and dispatch
+
+**Status: everything 3a set out to do is built on branch `phase-3a-loads`.**
+The owner approved the plan and the three-way split on 26 November 2026.
+Nothing is pushed and there is no pull request yet.
+
+### What is there
+
+1. **Five tables** — loads, load_stops, load_charges, load_state_miles,
+   documents — plus check_calls, which the spec's 37 do not include. The
+   isolation sweep found them all on its own: 283 RLS tests, up from 226.
+   Two things the schema enforces rather than trusting code: a load cannot be
+   dispatched without a driver and a truck, and whether it is billed, paid or
+   settled is not stored on it at all.
+2. **The state machine** in `src/domain/load.ts`, with the whole six-by-six
+   grid tested — thirty-six cases stated once, so no transition can be widened
+   without the test file disagreeing. Refusals are specific: "A load needs a
+   delivery before it can be booked".
+3. **Services and actions.** A load number is one UPDATE ... RETURNING with a
+   single retry, so two dispatchers get different numbers; a status move only
+   lands if the load is still where it was read, so the second person to press
+   Dispatch is told rather than ignored.
+4. **The three screens** — Loads list, New load, Load page with its tabs,
+   stops, money and timeline — from the approved preview in `src/ui/previews`.
+5. **The dispatch board**, derived entirely from loads and stops. There is no
+   schedule table that could disagree with them.
+6. **The dispatch suggestion.** Booking a load ranks the drivers who are free
+   and suggests the closest, with the reason on the card. Accepting it assigns
+   them; dispatching stays a person's decision.
+7. **Check calls and detention.** Leaving a dock longer than it allows offers a
+   detention line — the hours, not the figure, because no contract rate is on
+   record. The event fires on the first departure only, so a correction does
+   not raise a second card.
+8. **Loads in search**, by number and by the broker's reference.
+9. **The company screen**, owner only, holding the two placeholder rates every
+   profit estimate leans on.
+
+All green: typecheck, lint, UI guard (148 files), 270 unit and action tests,
+283 RLS tests, 10 end-to-end, 4 visual, production build. The visual baselines
+are untouched.
+
+### Two bugs worth remembering
+
+- **A composite `ON DELETE SET NULL` nulls every column in the key.** Deleting
+  a load with a document attached failed outright, because company_id is NOT
+  NULL. Postgres 15's column list fixes it; found by trying to clear demo data,
+  not by a test.
+- **An 08:00 Memphis pickup saved as 21:00 the previous day.** Three zones were
+  in play — the browser's, the server's and the facility's — and
+  `new Date("2026-11-30T08:00")` reads the string in whichever one the machine
+  is set to. `src/domain/time.ts` now converts with the zone always named, and
+  the action passes the wall clock through untouched because only the service
+  knows which dock it belongs to.
+
+### Three tables the spec's 37 do not include
+
+`import_mappings` (phase 2), `check_calls` and nothing else. Each is noted
+where it was added and why.
+
+### What 3a does not do
+
+Reading a rate confirmation (3b) and running in production (3c). The Load page
+shows no Documents tab for that reason, and New load says plainly that
+dropping a rate con is the next piece of work.
+
 ## Phase 2 — Fleet and customers
 
 **Status: everything phase 2 asked for is built on branch `phase-2-fleet`,

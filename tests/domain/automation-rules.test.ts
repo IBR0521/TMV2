@@ -33,7 +33,9 @@ describe('the rule catalogue', () => {
   it('finds the rules listening for an event', () => {
     expect(rulesForEvent('test.ping').map((r) => r.key)).toEqual(['test.ping.acknowledge']);
     expect(rulesListeningFor('test.ping')).toHaveLength(1);
-    expect(rulesListeningFor('load.booked')).toHaveLength(0);
+    expect(rulesListeningFor('load.booked')).toHaveLength(1);
+    // An event nothing listens for yet returns nothing, rather than guessing.
+    expect(rulesListeningFor('invoice.overdue')).toHaveLength(0);
   });
 
   it('labels a card with words, not an event type', () => {

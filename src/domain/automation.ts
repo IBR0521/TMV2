@@ -36,6 +36,15 @@ export const AUTOMATION_RULES: readonly AutomationRule[] = [
     defaultMode: 'suggest',
   },
   {
+    key: 'load.booked.assign',
+    event: 'load.booked',
+    label: 'Needs a driver',
+    description:
+      'When a load is booked, ranks the drivers who are free and suggests the '
+      + 'one closest to the pickup.',
+    defaultMode: 'suggest',
+  },
+  {
     key: 'compliance.expiring.alert',
     event: 'compliance.expiring',
     label: 'Expiring paperwork',

@@ -83,7 +83,7 @@ export async function board(ctx: Ctx): Promise<Board> {
     return { date, label: dayLabel(date, index === 0), today: index === 0 };
   });
 
-  const [loads, trucks, drivers] = await Promise.all([
+  const [loads, trucks, drivers, suggested] = await Promise.all([
     listLoads(ctx),
     ctx.db
       .from('trucks')
@@ -99,12 +99,31 @@ export async function board(ctx: Ctx): Promise<Board> {
       .eq('status', 'active')
       .is('archived_at', null)
       .order('name', { ascending: true }),
+    // The dispatch rule's open cards, so the board can show what it suggested
+    // as a dashed block — the same suggestion, in the place a dispatcher is
+    // already looking.
+    ctx.db
+      .from('suggestions')
+      .select('subject_id, action_params')
+      .eq('company_id', ctx.companyId)
+      .eq('type', 'load.booked')
+      .eq('status', 'open'),
   ]);
 
   if (trucks.error) fail(trucks.error, 'The trucks could not be read.');
+  if (suggested.error) fail(suggested.error, 'The suggestions could not be read.');
   if (drivers.error) fail(drivers.error, 'The drivers could not be read.');
 
   const driverName = new Map(drivers.data.map((row) => [row.id, row.name] as const));
+
+  /** Which truck the rule suggested for each load still waiting. */
+  const suggestedTruck = new Map<string, string>();
+  for (const card of suggested.data) {
+    const params = card.action_params as { loadId?: unknown; truckId?: unknown } | null;
+    if (typeof params?.truckId === 'string' && card.subject_id !== null) {
+      suggestedTruck.set(card.subject_id, params.truckId);
+    }
+  }
   const last = days[days.length - 1];
 
   // A load is on the board if any part of it falls in the window.
@@ -152,6 +171,29 @@ export async function board(ctx: Ctx): Promise<Board> {
         span,
         title: `#${load.loadNumber} ${load.from ?? '—'} → ${load.to ?? '—'}`,
         detail: overdue ? 'Pickup time has passed' : load.customerName,
+      });
+    }
+
+    // What the rule suggested for this truck, drawn dashed over the gap it
+    // would fill. It is a suggestion, not a booking, and looks like one.
+    for (const load of onBoard) {
+      if (load.driverId !== null) continue;
+      if (suggestedTruck.get(load.id) !== truckId) continue;
+
+      const from = columnFor(load.firstPickupAt, days, timezone) ?? 1;
+      const to = columnFor(load.lastDeliveryAt, days, timezone) ?? BOARD_DAYS;
+      const startDay = Math.max(1, Math.min(from, to));
+      const span = Math.max(1, Math.min(BOARD_DAYS - startDay + 1, Math.abs(to - from) + 1));
+
+      for (let day = startDay; day < startDay + span; day += 1) covered.add(day);
+
+      blocks.push({
+        loadId: load.id,
+        kind: 'suggested',
+        startDay,
+        span,
+        title: `Suggested: #${load.loadNumber}`,
+        detail: `${load.from ?? '—'} → ${load.to ?? '—'}`,
       });
     }
 

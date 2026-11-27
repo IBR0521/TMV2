@@ -2,6 +2,7 @@ import type { Ctx } from '../context';
 import { fail } from '../db/errors';
 import { ActionError } from '../errors';
 import * as audit from './audit';
+import { assign } from './loads';
 
 /**
  * The Today inbox. The worker writes these rows; the office resolves them.
@@ -24,11 +25,29 @@ export type Suggestion = {
 type AcceptHandler = (ctx: Ctx, params: Record<string, unknown>) => Promise<void>;
 
 /**
- * Phase 1: acknowledging a card only resolves it. Every later phase adds its
- * real action here, pointing at the service its screen already calls.
+ * Accepting a card runs the same service the manual screen runs, with the
+ * clicking user's ctx, so roles and RLS still apply (CLAUDE.md rule 4). Every
+ * phase adds its own, pointing at a service that already exists.
  */
 const ACCEPT_HANDLERS: Record<string, AcceptHandler> = {
   acknowledge: async () => {},
+
+  /**
+   * The dispatch suggestion. It puts the driver on the load and stops there:
+   * dispatching is telling somebody to go, and that stays a decision a person
+   * makes on purpose rather than a side effect of clearing a card.
+   */
+  assign_suggested_driver: async (ctx, params) => {
+    const loadId = typeof params.loadId === 'string' ? params.loadId : null;
+    const driverId = typeof params.driverId === 'string' ? params.driverId : null;
+    const truckId = typeof params.truckId === 'string' ? params.truckId : null;
+
+    if (loadId === null || driverId === null || truckId === null) {
+      throw new ActionError('That suggestion is missing the driver or the truck.');
+    }
+
+    await assign(ctx, loadId, driverId, truckId, null);
+  },
 };
 
 export async function listOpen(ctx: Ctx): Promise<Suggestion[]> {

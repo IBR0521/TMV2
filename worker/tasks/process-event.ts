@@ -1,8 +1,9 @@
 import type { Task } from 'graphile-worker';
 import { defaultModeFor, isAutomationMode, type AutomationMode } from '../../src/domain/automation';
 import { serviceDb } from '../db';
+import { driverCandidatesFor } from '../facts/driver-candidates';
 import { rulesListeningFor } from '../rules';
-import type { RuleAction, WorkerEvent } from '../rules/types';
+import type { Rule, RuleAction, RuleFacts, WorkerEvent } from '../rules/types';
 
 /**
  * One event, every rule that listens for it.
@@ -53,6 +54,16 @@ async function applySuggestion(event: WorkerEvent, action: RuleAction): Promise<
   if (error) throw new Error(`suggestions upsert: ${error.message}`);
 }
 
+/**
+ * What a rule asked for. The rule stays a pure function; the fetching is here,
+ * where the database belongs.
+ */
+async function factsFor(rule: Rule, event: WorkerEvent): Promise<RuleFacts> {
+  if (rule.needs !== 'driver_candidates') return {};
+  if (event.subjectId === null) return {};
+  return driverCandidatesFor(event.companyId, event.subjectId);
+}
+
 export const processEvent: Task = async (rawPayload, helpers) => {
   const payload = (rawPayload ?? {}) as Payload;
   const eventId = typeof payload.event_id === 'string' ? payload.event_id : null;
@@ -89,7 +100,7 @@ export const processEvent: Task = async (rawPayload, helpers) => {
     const mode = await modeFor(event.companyId, rule.key);
     if (mode === 'off') continue;
 
-    for (const action of rule.handle(event)) {
+    for (const action of rule.handle(event, await factsFor(rule, event))) {
       if (mode === 'suggest' && action.kind === 'suggest') {
         await applySuggestion(event, action);
       }

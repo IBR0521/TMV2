@@ -47,6 +47,47 @@ beforeAll(async () => {
     .insert([{ company_id: beta.companyId, unit_number: 'ZZ-OTHER', plate: 'ZZ 0001' }]);
 }, 180_000);
 
+describe('a load', () => {
+  it('is found by its own number', async () => {
+    const admin2 = adminDb();
+    const made = await admin2
+      .from('loads')
+      .insert({ company_id: alpha.companyId, load_number: 'QQ-4242' })
+      .select('id')
+      .single();
+    expect(made.error).toBeNull();
+
+    const { hits } = await search(ctxFor(alpha), 'QQ-4242');
+
+    expect(hits[0]?.kind).toBe('load');
+    expect(hits[0]?.href).toContain('/loads/');
+  });
+
+  // The broker's own number is the one they say on the phone, and the one a
+  // dispatcher has in front of them when asked about a load they did not book.
+  it('is found by the broker’s reference', async () => {
+    await adminDb()
+      .from('loads')
+      .insert({
+        company_id: alpha.companyId,
+        load_number: 'QQ-4243',
+        broker_ref: 'ZZREF-98765',
+      });
+
+    const { hits } = await search(ctxFor(alpha), 'ZZREF-98765');
+
+    expect(hits.map((hit) => hit.kind)).toContain('load');
+  });
+
+  it('is not found by the other carrier', async () => {
+    await adminDb()
+      .from('loads')
+      .insert({ company_id: beta.companyId, load_number: 'ZZ-OTHERLOAD' });
+
+    expect((await search(ctxFor(alpha), 'ZZ-OTHERLOAD')).hits).toEqual([]);
+  });
+});
+
 describe('a search', () => {
   it('finds this carrier’s own driver', async () => {
     const { hits } = await search(ctxFor(alpha), 'Pepperwick');

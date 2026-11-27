@@ -1,4 +1,5 @@
 import { formatPhone } from '@/domain/fleet';
+import { loadStatusLabel } from '@/domain/load';
 import type { Ctx } from '../context';
 import { fail } from '../db/errors';
 
@@ -13,9 +14,13 @@ import { fail } from '../db/errors';
  * Facilities are in here too. They are not on the build plan's list, but a
  * dispatcher looking for "Sunbelt" means the dock, and leaving them out would
  * make the search feel broken rather than deliberate.
+ *
+ * Loads are found by their own number and by the broker's reference, which is
+ * the number a broker says on the phone — and the one a dispatcher has in
+ * front of them when they are asked about a load they did not book.
  */
 export type SearchHit = {
-  kind: 'driver' | 'truck' | 'trailer' | 'customer' | 'facility';
+  kind: 'load' | 'driver' | 'truck' | 'trailer' | 'customer' | 'facility';
   id: string;
   title: string;
   detail: string;
@@ -43,7 +48,14 @@ export async function search(ctx: Ctx, rawTerm: string): Promise<SearchResults> 
 
   const like = `%${literal(term)}%`;
 
-  const [drivers, trucks, trailers, customers, facilities] = await Promise.all([
+  const [loads, drivers, trucks, trailers, customers, facilities] = await Promise.all([
+    ctx.db
+      .from('loads')
+      .select('id, load_number, status, broker_ref, customer_id')
+      .eq('company_id', ctx.companyId)
+      .or(`load_number.ilike.${like},broker_ref.ilike.${like}`)
+      .order('created_at', { ascending: false })
+      .limit(PER_KIND),
     ctx.db
       .from('drivers')
       .select('id, name, phone, home_location')
@@ -88,13 +100,35 @@ export async function search(ctx: Ctx, rawTerm: string): Promise<SearchResults> 
 
   // One at a time rather than in a loop: a loop checks them all but tells the
   // type checker nothing, and `data` stays possibly-null afterwards.
+  if (loads.error) fail(loads.error, 'The search could not be run.');
   if (drivers.error) fail(drivers.error, 'The search could not be run.');
   if (trucks.error) fail(trucks.error, 'The search could not be run.');
   if (trailers.error) fail(trailers.error, 'The search could not be run.');
   if (customers.error) fail(customers.error, 'The search could not be run.');
   if (facilities.error) fail(facilities.error, 'The search could not be run.');
 
+  // Customers are looked up so a load can say who it is for, which is what a
+  // dispatcher is checking when they search a broker's reference.
+  const customerName = new Map(
+    (
+      await ctx.db.from('customers').select('id, name').eq('company_id', ctx.companyId)
+    ).data?.map((row) => [row.id, row.name] as const) ?? [],
+  );
+
   const hits: SearchHit[] = [
+    ...loads.data.map((row): SearchHit => ({
+      kind: 'load',
+      id: row.id,
+      title: `Load #${row.load_number}`,
+      detail: [
+        loadStatusLabel(row.status),
+        row.customer_id === null ? null : customerName.get(row.customer_id) ?? null,
+        row.broker_ref === null ? null : `Ref ${row.broker_ref}`,
+      ]
+        .filter((part): part is string => part !== null && part !== '')
+        .join(' · '),
+      href: `/loads/${row.id}`,
+    })),
     ...drivers.data.map((row): SearchHit => ({
       kind: 'driver',
       id: row.id,

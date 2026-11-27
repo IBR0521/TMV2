@@ -14,6 +14,7 @@ export const metadata = { title: 'Search' };
  * typed still in it, so the search can be corrected where the results are.
  */
 const KIND_LABEL: Record<SearchHit['kind'], string> = {
+  load: 'Load',
   driver: 'Driver',
   truck: 'Truck',
   trailer: 'Trailer',
@@ -38,7 +39,7 @@ export default async function SearchPage({
         title="Search"
         subtitle={
           results.term === ''
-            ? 'Drivers, trucks, trailers, customers and facilities.'
+            ? 'Loads, drivers, trucks, trailers, customers and facilities.'
             : `${results.hits.length} ${results.hits.length === 1 ? 'result' : 'results'} for “${results.term}”`
         }
       >

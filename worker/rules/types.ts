@@ -1,4 +1,5 @@
 import type { DriverCandidate } from '../../src/domain/dispatch';
+import type { StopDwell } from '../facts/stop-dwell';
 import type { Json } from '../../src/server/db/database.types';
 
 /**
@@ -46,12 +47,13 @@ export type RuleAction = {
 export type RuleFacts = {
   candidates?: DriverCandidate[];
   pickup?: { lat: number; lng: number } | null;
+  dwell?: StopDwell;
 };
 
 export type Rule = {
   /** Matches a key in src/domain/automation.ts. */
   key: string;
   /** What the task should fetch before calling handle. */
-  needs?: 'driver_candidates';
+  needs?: 'driver_candidates' | 'stop_dwell';
   handle: (event: WorkerEvent, facts?: RuleFacts) => RuleAction[];
 };

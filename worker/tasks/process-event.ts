@@ -2,6 +2,7 @@ import type { Task } from 'graphile-worker';
 import { defaultModeFor, isAutomationMode, type AutomationMode } from '../../src/domain/automation';
 import { serviceDb } from '../db';
 import { driverCandidatesFor } from '../facts/driver-candidates';
+import { stopDwellFor } from '../facts/stop-dwell';
 import { rulesListeningFor } from '../rules';
 import type { Rule, RuleAction, RuleFacts, WorkerEvent } from '../rules/types';
 
@@ -59,9 +60,13 @@ async function applySuggestion(event: WorkerEvent, action: RuleAction): Promise<
  * where the database belongs.
  */
 async function factsFor(rule: Rule, event: WorkerEvent): Promise<RuleFacts> {
-  if (rule.needs !== 'driver_candidates') return {};
-  if (event.subjectId === null) return {};
-  return driverCandidatesFor(event.companyId, event.subjectId);
+  if (rule.needs === undefined || event.subjectId === null) return {};
+
+  if (rule.needs === 'driver_candidates') {
+    return driverCandidatesFor(event.companyId, event.subjectId);
+  }
+
+  return { dwell: await stopDwellFor(event.companyId, event.subjectId) };
 }
 
 export const processEvent: Task = async (rawPayload, helpers) => {

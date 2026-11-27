@@ -20,9 +20,10 @@ import { chargeKindLabel, loadStatusLabel, nextStep, nextStepLabel } from '@/dom
 import { wallClockOf } from '@/domain/time';
 import { requireSection } from '@/server/guard';
 import { listFacilities } from '@/server/services/facilities';
-import { getLoad, timeline, type StopRow } from '@/server/services/loads';
+import { getLoad, listCheckCalls, timeline, type StopRow } from '@/server/services/loads';
 import { LoadHeader } from './load-header';
 import { Charges } from './charges';
+import { CheckCalls, type CheckCallView } from './check-calls';
 import { Stops, type StopView } from './stops';
 
 export const metadata = { title: 'Load' };
@@ -83,7 +84,11 @@ export default async function LoadPage({
   if (detail === null) notFound();
 
   const { load, stops, charges } = detail;
-  const [history, facilities] = await Promise.all([timeline(ctx, loadId), listFacilities(ctx)]);
+  const [history, facilities, calls] = await Promise.all([
+    timeline(ctx, loadId),
+    listFacilities(ctx),
+    listCheckCalls(ctx, loadId),
+  ]);
 
   // A delivered or cancelled load is a record, not a plan: its stops stay as
   // they were run.
@@ -129,7 +134,26 @@ export default async function LoadPage({
     .filter((part): part is string => part !== null && part !== '')
     .join(' · ');
 
-  const showing = tab === 'charges' ? 'charges' : 'overview';
+  const showing =
+    tab === 'charges' ? 'charges' : tab === 'calls' ? 'calls' : 'overview';
+
+  const callViews: CheckCallView[] = calls.map((call) => ({
+    id: call.id,
+    at: call.at,
+    shown: new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(new Date(call.at)),
+    location: call.location,
+    note: call.note,
+  }));
+
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const now = new Date();
+  const nowLocal = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
   return (
     <>
@@ -162,11 +186,19 @@ export default async function LoadPage({
             active: showing === 'charges',
             count: charges.length,
           },
+          {
+            label: 'Check calls',
+            href: `/loads/${load.id}?tab=calls`,
+            active: showing === 'calls',
+            count: calls.length,
+          },
         ]}
       />
 
       {showing === 'charges' ? (
         <Charges loadId={load.id} charges={charges} rateCents={load.rateCents} />
+      ) : showing === 'calls' ? (
+        <CheckCalls loadId={load.id} calls={callViews} nowLocal={nowLocal} canAdd={canEdit} />
       ) : (
         <Columns gap="md">
           <MainColumn>

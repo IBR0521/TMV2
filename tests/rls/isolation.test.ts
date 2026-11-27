@@ -49,7 +49,7 @@ describe('every table with a company_id', () => {
   it('is covered by this sweep', () => {
     // A reminder that the count grows with every phase; if it ever shrinks,
     // a table lost its company_id.
-    expect(tables.length).toBeGreaterThanOrEqual(25);
+    expect(tables.length).toBeGreaterThanOrEqual(26);
     expect(tables).toContain('companies');
     expect(tables).toContain('memberships');
     expect(tables).toContain('suggestions');
@@ -64,6 +64,7 @@ describe('every table with a company_id', () => {
     expect(tables).toContain('load_stops');
     expect(tables).toContain('load_charges');
     expect(tables).toContain('documents');
+    expect(tables).toContain('check_calls');
   });
 
   for (const table of tables) {

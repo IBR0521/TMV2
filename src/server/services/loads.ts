@@ -726,3 +726,83 @@ function friendly(action: string): string {
   const words = action.split('.').pop() ?? action;
   return words.charAt(0).toUpperCase() + words.slice(1).replace(/_/g, ' ');
 }
+
+// ---------------------------------------------------------------------------
+// Check calls
+// ---------------------------------------------------------------------------
+export type CheckCallRow = {
+  id: string;
+  at: string;
+  location: string;
+  note: string | null;
+};
+
+export async function listCheckCalls(ctx: Ctx, loadId: string): Promise<CheckCallRow[]> {
+  const { data, error } = await ctx.db
+    .from('check_calls')
+    .select('id, at, location, note')
+    .eq('company_id', ctx.companyId)
+    .eq('load_id', loadId)
+    .order('at', { ascending: false });
+
+  if (error) fail(error, 'The check calls could not be read.');
+
+  return data.map((row) => ({
+    id: row.id,
+    at: row.at,
+    location: row.location,
+    note: row.note,
+  }));
+}
+
+/**
+ * Where the truck was when somebody asked.
+ *
+ * The time is an instant, not a wall clock: a check call happens wherever the
+ * truck is, which is not a dock with a known zone, so it is recorded in UTC
+ * and shown in the carrier's own.
+ */
+export async function addCheckCall(
+  ctx: Ctx,
+  loadId: string,
+  at: string,
+  location: string,
+  note: string | null,
+): Promise<string> {
+  const { data, error } = await ctx.db
+    .from('check_calls')
+    .insert({
+      company_id: ctx.companyId,
+      load_id: loadId,
+      at,
+      location,
+      note,
+      recorded_by: ctx.userId,
+    })
+    .select('id')
+    .single();
+
+  if (error) fail(error, 'That check call could not be saved.');
+
+  await audit.record(ctx, {
+    action: 'load.check_call',
+    subjectType: 'load',
+    subjectId: loadId,
+    after: { at, location },
+  });
+
+  return data.id;
+}
+
+export async function removeCheckCall(ctx: Ctx, checkCallId: string): Promise<void> {
+  const { data, error } = await ctx.db
+    .from('check_calls')
+    .delete()
+    .eq('company_id', ctx.companyId)
+    .eq('id', checkCallId)
+    .select('id')
+    .maybeSingle();
+
+  if (error) fail(error, 'That check call could not be removed.');
+  if (data === null) throw new ActionError('That check call is no longer there.');
+}

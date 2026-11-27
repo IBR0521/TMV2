@@ -2,7 +2,7 @@ import type { Ctx } from '../context';
 import { fail } from '../db/errors';
 import { ActionError } from '../errors';
 import * as audit from './audit';
-import { assign } from './loads';
+import { assign, saveCharge } from './loads';
 
 /**
  * The Today inbox. The worker writes these rows; the office resolves them.
@@ -47,6 +47,31 @@ const ACCEPT_HANDLERS: Record<string, AcceptHandler> = {
     }
 
     await assign(ctx, loadId, driverId, truckId, null);
+  },
+
+  /**
+   * The detention suggestion. It adds the line with the hours in its
+   * description and no amount: the hours are what nobody can reconstruct a
+   * week later, and the figure depends on a contract TruckMates does not hold.
+   */
+  add_detention_charge: async (ctx, params) => {
+    const loadId = typeof params.loadId === 'string' ? params.loadId : null;
+    if (loadId === null) throw new ActionError('That suggestion is missing the load.');
+
+    const over = typeof params.overMinutes === 'number' ? params.overMinutes : 0;
+    const where = typeof params.where === 'string' ? params.where : 'the dock';
+    const hours = Math.floor(over / 60);
+    const minutes = over % 60;
+    const spelled = hours === 0 ? `${minutes} min` : minutes === 0 ? `${hours} h` : `${hours} h ${minutes} min`;
+
+    await saveCharge(ctx, {
+      loadId,
+      kind: 'detention',
+      description: `${spelled} over free time at ${where}`,
+      amountCents: 0,
+      billCustomer: true,
+      payDriver: false,
+    });
   },
 };
 

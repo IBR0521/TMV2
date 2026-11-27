@@ -276,6 +276,11 @@ async function fillEveryTenantTable(
       kind: 'rate_con',
       load_id: load.data.id,
     }),
+    admin.from('check_calls').insert({
+      company_id: companyId,
+      load_id: load.data.id,
+      location: 'Fixture, somewhere on the interstate',
+    }),
   ]);
 
   for (const row of rows) {

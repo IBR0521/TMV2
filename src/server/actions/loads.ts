@@ -243,3 +243,38 @@ export const removeCharge = action(
     return { removed: true };
   },
 );
+
+// ---------------------------------------------------------------------------
+// Check calls
+// ---------------------------------------------------------------------------
+export const addCheckCall = action(
+  z.object({
+    loadId: z.uuid(),
+    // An instant, not a wall clock: a truck on the interstate is not at a dock
+    // with a known zone, so this one is read in the browser's.
+    at: z
+      .string()
+      .trim()
+      .min(1, 'Enter when the call was.')
+      .refine((raw) => !Number.isNaN(Date.parse(raw)), 'Enter when the call was.')
+      .transform((raw) => new Date(raw).toISOString()),
+    location: z.string().trim().min(2, 'Where is the truck?').max(200),
+    note: optionalText(500),
+  }),
+  DISPATCH,
+  async (ctx, input) => {
+    const id = await loads.addCheckCall(ctx, input.loadId, input.at, input.location, input.note);
+    revalidatePath(`/loads/${input.loadId}`);
+    return { checkCallId: id };
+  },
+);
+
+export const removeCheckCall = action(
+  z.object({ checkCallId: z.uuid(), loadId: z.uuid() }),
+  DISPATCH,
+  async (ctx, input) => {
+    await loads.removeCheckCall(ctx, input.checkCallId);
+    revalidatePath(`/loads/${input.loadId}`);
+    return { removed: true };
+  },
+);

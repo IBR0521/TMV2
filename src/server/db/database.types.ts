@@ -103,6 +103,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"check_calls": {
+                  Row: {
+                    "at": string,"company_id": string,"created_at": string,"id": string,"lat": number | null,"lng": number | null,"load_id": string,"location": string,"note": string | null,"recorded_by": string | null,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "at"?: string,"company_id": string,"created_at"?: string,"id"?: string,"lat"?: number | null,"lng"?: number | null,"load_id": string,"location": string,"note"?: string | null,"recorded_by"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "at"?: string,"company_id"?: string,"created_at"?: string,"id"?: string,"lat"?: number | null,"lng"?: number | null,"load_id"?: string,"location"?: string,"note"?: string | null,"recorded_by"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "check_calls_company_id_fkey"
+      columns: ["company_id"]
+isOneToOne: false
+      referencedRelation: "companies"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "check_calls_company_id_load_id_fkey"
+      columns: ["company_id","load_id"]
+isOneToOne: false
+      referencedRelation: "loads"
+      referencedColumns: ["company_id","id"]
+    },{
+      foreignKeyName: "check_calls_recorded_by_fkey"
+      columns: ["recorded_by"]
+isOneToOne: false
+      referencedRelation: "users"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"companies": {
                   Row: {
                     "archived_at": string | null,"company_id": string,"created_at": string,"dot_number": string | null,"driver_pay_cents_per_mile": number,"fuel_cents_per_mile": number,"id": string,"mc_number": string | null,"name": string,"timezone": string,"updated_at": string

@@ -1,5 +1,7 @@
 import { rulesForEvent } from '../../src/domain/automation';
 import { complianceExpiringRule } from './compliance-expiring';
+import { loadBookedRule } from './load-booked';
+import { stopDepartedRule } from './stop-departed';
 import { testPingRule } from './test-ping';
 import type { Rule } from './types';
 
@@ -7,7 +9,12 @@ import type { Rule } from './types';
  * Every rule, by key. src/domain/automation.ts says which event a key listens
  * for and the mode it runs in by default; this says what it does.
  */
-const RULES: readonly Rule[] = [testPingRule, complianceExpiringRule];
+const RULES: readonly Rule[] = [
+  testPingRule,
+  complianceExpiringRule,
+  loadBookedRule,
+  stopDepartedRule,
+];
 
 export function ruleByKey(key: string): Rule | undefined {
   return RULES.find((rule) => rule.key === key);

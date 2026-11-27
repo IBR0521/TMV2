@@ -10,6 +10,7 @@
 import { config as loadEnv } from 'dotenv';
 import { clients, isLocal, provision, type DemoCompany } from './lib/provision';
 import { ALPHA_FLEET, BETA_FLEET, seedFleet, type FleetSeed } from './lib/demo-fleet';
+import { ALPHA_LOADS, seedLoads } from './lib/demo-loads';
 
 loadEnv({ path: ['.env.local', '.env'] });
 
@@ -70,6 +71,16 @@ async function main(): Promise<void> {
           `${fleet.drivers.length} drivers, ${fleet.trucks.length} trucks, ` +
           `${fleet.trailers.length} trailers, ${fleet.customers.length} customers, ` +
           `${fleet.facilities.length} facilities`,
+      );
+    }
+
+    // Loads only for Alpha: Beta exists to prove isolation, not to be read.
+    if (company.name === 'Alpha Freight') {
+      const { added } = await seedLoads(c, companyId, ALPHA_LOADS);
+      console.log(
+        added === 0
+          ? 'seed: Alpha Freight loads already there'
+          : `seed: added ${added} Alpha Freight loads with their stops and charges`,
       );
     }
   }

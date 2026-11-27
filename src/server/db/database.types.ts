@@ -103,16 +103,48 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"companies": {
+                },"check_calls": {
                   Row: {
-                    "archived_at": string | null,"company_id": string,"created_at": string,"dot_number": string | null,"id": string,"mc_number": string | null,"name": string,"timezone": string,"updated_at": string
+                    "at": string,"company_id": string,"created_at": string,"id": string,"lat": number | null,"lng": number | null,"load_id": string,"location": string,"note": string | null,"recorded_by": string | null,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "archived_at"?: string | null,"company_id"?: never,"created_at"?: string,"dot_number"?: string | null,"id"?: string,"mc_number"?: string | null,"name": string,"timezone"?: string,"updated_at"?: string
+                    "at"?: string,"company_id": string,"created_at"?: string,"id"?: string,"lat"?: number | null,"lng"?: number | null,"load_id": string,"location": string,"note"?: string | null,"recorded_by"?: string | null,"updated_at"?: string
                   }
                   Update: {
-                    "archived_at"?: string | null,"company_id"?: never,"created_at"?: string,"dot_number"?: string | null,"id"?: string,"mc_number"?: string | null,"name"?: string,"timezone"?: string,"updated_at"?: string
+                    "at"?: string,"company_id"?: string,"created_at"?: string,"id"?: string,"lat"?: number | null,"lng"?: number | null,"load_id"?: string,"location"?: string,"note"?: string | null,"recorded_by"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "check_calls_company_id_fkey"
+      columns: ["company_id"]
+isOneToOne: false
+      referencedRelation: "companies"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "check_calls_company_id_load_id_fkey"
+      columns: ["company_id","load_id"]
+isOneToOne: false
+      referencedRelation: "loads"
+      referencedColumns: ["company_id","id"]
+    },{
+      foreignKeyName: "check_calls_recorded_by_fkey"
+      columns: ["recorded_by"]
+isOneToOne: false
+      referencedRelation: "users"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"companies": {
+                  Row: {
+                    "archived_at": string | null,"company_id": string,"created_at": string,"dot_number": string | null,"driver_pay_cents_per_mile": number,"fuel_cents_per_mile": number,"id": string,"mc_number": string | null,"name": string,"timezone": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "archived_at"?: string | null,"company_id"?: never,"created_at"?: string,"dot_number"?: string | null,"driver_pay_cents_per_mile"?: number,"fuel_cents_per_mile"?: number,"id"?: string,"mc_number"?: string | null,"name": string,"timezone"?: string,"updated_at"?: string
+                  }
+                  Update: {
+                    "archived_at"?: string | null,"company_id"?: never,"created_at"?: string,"dot_number"?: string | null,"driver_pay_cents_per_mile"?: number,"fuel_cents_per_mile"?: number,"id"?: string,"mc_number"?: string | null,"name"?: string,"timezone"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     
@@ -204,6 +236,50 @@ isOneToOne: false
       columns: ["company_id"]
 isOneToOne: false
       referencedRelation: "companies"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"documents": {
+                  Row: {
+                    "company_id": string,"created_at": string,"extracted": Json | null,"extracted_at": string | null,"extracted_by": string | null,"extraction_error": string | null,"extraction_status": Database["public"]['Enums']["extraction_status"],"file_id": string,"id": string,"kind": Database["public"]['Enums']["document_kind"],"load_id": string | null,"stop_id": string | null,"updated_at": string,"uploaded_by": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "company_id": string,"created_at"?: string,"extracted"?: Json | null,"extracted_at"?: string | null,"extracted_by"?: string | null,"extraction_error"?: string | null,"extraction_status"?: Database["public"]['Enums']["extraction_status"],"file_id": string,"id"?: string,"kind": Database["public"]['Enums']["document_kind"],"load_id"?: string | null,"stop_id"?: string | null,"updated_at"?: string,"uploaded_by"?: string | null
+                  }
+                  Update: {
+                    "company_id"?: string,"created_at"?: string,"extracted"?: Json | null,"extracted_at"?: string | null,"extracted_by"?: string | null,"extraction_error"?: string | null,"extraction_status"?: Database["public"]['Enums']["extraction_status"],"file_id"?: string,"id"?: string,"kind"?: Database["public"]['Enums']["document_kind"],"load_id"?: string | null,"stop_id"?: string | null,"updated_at"?: string,"uploaded_by"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "documents_company_id_file_id_fkey"
+      columns: ["company_id","file_id"]
+isOneToOne: false
+      referencedRelation: "files"
+      referencedColumns: ["company_id","id"]
+    },{
+      foreignKeyName: "documents_company_id_fkey"
+      columns: ["company_id"]
+isOneToOne: false
+      referencedRelation: "companies"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "documents_company_id_load_id_fkey"
+      columns: ["company_id","load_id"]
+isOneToOne: false
+      referencedRelation: "loads"
+      referencedColumns: ["company_id","id"]
+    },{
+      foreignKeyName: "documents_company_id_stop_id_fkey"
+      columns: ["company_id","stop_id"]
+isOneToOne: false
+      referencedRelation: "load_stops"
+      referencedColumns: ["company_id","id"]
+    },{
+      foreignKeyName: "documents_uploaded_by_fkey"
+      columns: ["uploaded_by"]
+isOneToOne: false
+      referencedRelation: "users"
       referencedColumns: ["id"]
     }
                   ]
@@ -366,6 +442,140 @@ isOneToOne: false
     },{
       foreignKeyName: "invitations_invited_by_fkey"
       columns: ["invited_by"]
+isOneToOne: false
+      referencedRelation: "users"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"load_charges": {
+                  Row: {
+                    "amount_cents": number,"bill_customer": boolean,"company_id": string,"created_at": string,"description": string | null,"id": string,"kind": Database["public"]['Enums']["charge_kind"],"load_id": string,"pay_driver": boolean,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_cents": number,"bill_customer"?: boolean,"company_id": string,"created_at"?: string,"description"?: string | null,"id"?: string,"kind": Database["public"]['Enums']["charge_kind"],"load_id": string,"pay_driver"?: boolean,"updated_at"?: string
+                  }
+                  Update: {
+                    "amount_cents"?: number,"bill_customer"?: boolean,"company_id"?: string,"created_at"?: string,"description"?: string | null,"id"?: string,"kind"?: Database["public"]['Enums']["charge_kind"],"load_id"?: string,"pay_driver"?: boolean,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "load_charges_company_id_fkey"
+      columns: ["company_id"]
+isOneToOne: false
+      referencedRelation: "companies"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "load_charges_company_id_load_id_fkey"
+      columns: ["company_id","load_id"]
+isOneToOne: false
+      referencedRelation: "loads"
+      referencedColumns: ["company_id","id"]
+    }
+                  ]
+                },"load_state_miles": {
+                  Row: {
+                    "company_id": string,"created_at": string,"id": string,"load_id": string,"miles": number,"state": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "company_id": string,"created_at"?: string,"id"?: string,"load_id": string,"miles": number,"state": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "company_id"?: string,"created_at"?: string,"id"?: string,"load_id"?: string,"miles"?: number,"state"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "load_state_miles_company_id_fkey"
+      columns: ["company_id"]
+isOneToOne: false
+      referencedRelation: "companies"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "load_state_miles_company_id_load_id_fkey"
+      columns: ["company_id","load_id"]
+isOneToOne: false
+      referencedRelation: "loads"
+      referencedColumns: ["company_id","id"]
+    }
+                  ]
+                },"load_stops": {
+                  Row: {
+                    "appt_end": string | null,"appt_start": string | null,"arrived_at": string | null,"company_id": string,"created_at": string,"departed_at": string | null,"facility_id": string | null,"id": string,"load_id": string,"notes": string | null,"reference": string | null,"seq": number,"timezone": string,"type": Database["public"]['Enums']["stop_type"],"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "appt_end"?: string | null,"appt_start"?: string | null,"arrived_at"?: string | null,"company_id": string,"created_at"?: string,"departed_at"?: string | null,"facility_id"?: string | null,"id"?: string,"load_id": string,"notes"?: string | null,"reference"?: string | null,"seq": number,"timezone"?: string,"type": Database["public"]['Enums']["stop_type"],"updated_at"?: string
+                  }
+                  Update: {
+                    "appt_end"?: string | null,"appt_start"?: string | null,"arrived_at"?: string | null,"company_id"?: string,"created_at"?: string,"departed_at"?: string | null,"facility_id"?: string | null,"id"?: string,"load_id"?: string,"notes"?: string | null,"reference"?: string | null,"seq"?: number,"timezone"?: string,"type"?: Database["public"]['Enums']["stop_type"],"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "load_stops_company_id_facility_id_fkey"
+      columns: ["company_id","facility_id"]
+isOneToOne: false
+      referencedRelation: "facilities"
+      referencedColumns: ["company_id","id"]
+    },{
+      foreignKeyName: "load_stops_company_id_fkey"
+      columns: ["company_id"]
+isOneToOne: false
+      referencedRelation: "companies"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "load_stops_company_id_load_id_fkey"
+      columns: ["company_id","load_id"]
+isOneToOne: false
+      referencedRelation: "loads"
+      referencedColumns: ["company_id","id"]
+    }
+                  ]
+                },"loads": {
+                  Row: {
+                    "booked_at": string | null,"broker_ref": string | null,"cancelled_at": string | null,"cancelled_reason": string | null,"company_id": string,"created_at": string,"created_by": string | null,"customer_id": string | null,"delivered_at": string | null,"dispatched_at": string | null,"driver_id": string | null,"empty_miles": number | null,"id": string,"load_number": string,"notes": string | null,"source": Database["public"]['Enums']["load_source"],"status": Database["public"]['Enums']["load_status"],"total_miles": number | null,"trailer_id": string | null,"truck_id": string | null,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "booked_at"?: string | null,"broker_ref"?: string | null,"cancelled_at"?: string | null,"cancelled_reason"?: string | null,"company_id": string,"created_at"?: string,"created_by"?: string | null,"customer_id"?: string | null,"delivered_at"?: string | null,"dispatched_at"?: string | null,"driver_id"?: string | null,"empty_miles"?: number | null,"id"?: string,"load_number": string,"notes"?: string | null,"source"?: Database["public"]['Enums']["load_source"],"status"?: Database["public"]['Enums']["load_status"],"total_miles"?: number | null,"trailer_id"?: string | null,"truck_id"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "booked_at"?: string | null,"broker_ref"?: string | null,"cancelled_at"?: string | null,"cancelled_reason"?: string | null,"company_id"?: string,"created_at"?: string,"created_by"?: string | null,"customer_id"?: string | null,"delivered_at"?: string | null,"dispatched_at"?: string | null,"driver_id"?: string | null,"empty_miles"?: number | null,"id"?: string,"load_number"?: string,"notes"?: string | null,"source"?: Database["public"]['Enums']["load_source"],"status"?: Database["public"]['Enums']["load_status"],"total_miles"?: number | null,"trailer_id"?: string | null,"truck_id"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "loads_company_id_customer_id_fkey"
+      columns: ["company_id","customer_id"]
+isOneToOne: false
+      referencedRelation: "customers"
+      referencedColumns: ["company_id","id"]
+    },{
+      foreignKeyName: "loads_company_id_driver_id_fkey"
+      columns: ["company_id","driver_id"]
+isOneToOne: false
+      referencedRelation: "drivers"
+      referencedColumns: ["company_id","id"]
+    },{
+      foreignKeyName: "loads_company_id_fkey"
+      columns: ["company_id"]
+isOneToOne: false
+      referencedRelation: "companies"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "loads_company_id_trailer_id_fkey"
+      columns: ["company_id","trailer_id"]
+isOneToOne: false
+      referencedRelation: "trailers"
+      referencedColumns: ["company_id","id"]
+    },{
+      foreignKeyName: "loads_company_id_truck_id_fkey"
+      columns: ["company_id","truck_id"]
+isOneToOne: false
+      referencedRelation: "trucks"
+      referencedColumns: ["company_id","id"]
+    },{
+      foreignKeyName: "loads_created_by_fkey"
+      columns: ["created_by"]
 isOneToOne: false
       referencedRelation: "users"
       referencedColumns: ["id"]
@@ -563,7 +773,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "compliance_kind": "cdl"|"medical"|"registration"|"insurance"|"inspection","customer_type": "broker"|"shipper","driver_status": "active"|"inactive","driver_type": "company"|"owner_operator","geocode_status": "pending"|"found"|"not_found"|"manual","import_kind": "trucks"|"drivers"|"customers","invitation_status": "pending"|"accepted"|"revoked","invoice_send_mode": "email"|"own_portal","membership_status": "active"|"invited"|"disabled","subscription_status": "trialing"|"active"|"past_due"|"cancelled","trailer_type": "dry_van"|"reefer"|"flatbed","unit_status": "active"|"inactive"|"in_shop","user_role": "owner"|"dispatcher"|"accounting"|"driver"
+            "charge_kind": "linehaul"|"fuel_surcharge"|"detention"|"lumper"|"layover"|"tonu"|"other","compliance_kind": "cdl"|"medical"|"registration"|"insurance"|"inspection","customer_type": "broker"|"shipper","document_kind": "rate_con"|"bol"|"pod"|"receipt"|"lumper","driver_status": "active"|"inactive","driver_type": "company"|"owner_operator","extraction_status": "uploaded"|"extracting"|"needs_review"|"confirmed"|"failed","geocode_status": "pending"|"found"|"not_found"|"manual","import_kind": "trucks"|"drivers"|"customers","invitation_status": "pending"|"accepted"|"revoked","invoice_send_mode": "email"|"own_portal","load_source": "rate_con"|"manual","load_status": "draft"|"booked"|"dispatched"|"in_transit"|"delivered"|"cancelled","membership_status": "active"|"invited"|"disabled","stop_type": "pickup"|"delivery","subscription_status": "trialing"|"active"|"past_due"|"cancelled","trailer_type": "dry_van"|"reefer"|"flatbed","unit_status": "active"|"inactive"|"in_shop","user_role": "owner"|"dispatcher"|"accounting"|"driver"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -679,7 +889,7 @@ export type CompositeTypes<
 export const Constants = {
   "public": {
           Enums: {
-            "compliance_kind": ["cdl", "medical", "registration", "insurance", "inspection"],"customer_type": ["broker", "shipper"],"driver_status": ["active", "inactive"],"driver_type": ["company", "owner_operator"],"geocode_status": ["pending", "found", "not_found", "manual"],"import_kind": ["trucks", "drivers", "customers"],"invitation_status": ["pending", "accepted", "revoked"],"invoice_send_mode": ["email", "own_portal"],"membership_status": ["active", "invited", "disabled"],"subscription_status": ["trialing", "active", "past_due", "cancelled"],"trailer_type": ["dry_van", "reefer", "flatbed"],"unit_status": ["active", "inactive", "in_shop"],"user_role": ["owner", "dispatcher", "accounting", "driver"]
+            "charge_kind": ["linehaul", "fuel_surcharge", "detention", "lumper", "layover", "tonu", "other"],"compliance_kind": ["cdl", "medical", "registration", "insurance", "inspection"],"customer_type": ["broker", "shipper"],"document_kind": ["rate_con", "bol", "pod", "receipt", "lumper"],"driver_status": ["active", "inactive"],"driver_type": ["company", "owner_operator"],"extraction_status": ["uploaded", "extracting", "needs_review", "confirmed", "failed"],"geocode_status": ["pending", "found", "not_found", "manual"],"import_kind": ["trucks", "drivers", "customers"],"invitation_status": ["pending", "accepted", "revoked"],"invoice_send_mode": ["email", "own_portal"],"load_source": ["rate_con", "manual"],"load_status": ["draft", "booked", "dispatched", "in_transit", "delivered", "cancelled"],"membership_status": ["active", "invited", "disabled"],"stop_type": ["pickup", "delivery"],"subscription_status": ["trialing", "active", "past_due", "cancelled"],"trailer_type": ["dry_van", "reefer", "flatbed"],"unit_status": ["active", "inactive", "in_shop"],"user_role": ["owner", "dispatcher", "accounting", "driver"]
           }
         }
 } as const

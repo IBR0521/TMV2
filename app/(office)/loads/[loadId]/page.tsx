@@ -13,15 +13,17 @@ import {
   PanelHeader,
   SideColumn,
   StatusChip,
-  StopItem,
   Tabs,
   Timeline,
 } from '@/ui';
-import { loadStatusLabel, nextStep, nextStepLabel } from '@/domain/load';
+import { chargeKindLabel, loadStatusLabel, nextStep, nextStepLabel } from '@/domain/load';
+import { wallClockOf } from '@/domain/time';
 import { requireSection } from '@/server/guard';
+import { listFacilities } from '@/server/services/facilities';
 import { getLoad, timeline, type StopRow } from '@/server/services/loads';
 import { LoadHeader } from './load-header';
 import { Charges } from './charges';
+import { Stops, type StopView } from './stops';
 
 export const metadata = { title: 'Load' };
 
@@ -81,7 +83,33 @@ export default async function LoadPage({
   if (detail === null) notFound();
 
   const { load, stops, charges } = detail;
-  const history = await timeline(ctx, loadId);
+  const [history, facilities] = await Promise.all([timeline(ctx, loadId), listFacilities(ctx)]);
+
+  // A delivered or cancelled load is a record, not a plan: its stops stay as
+  // they were run.
+  const canEdit = load.status !== 'delivered' && load.status !== 'cancelled';
+
+  const stopViews: StopView[] = stops.map((stop) => ({
+    id: stop.id,
+    seq: stop.seq,
+    type: stop.type,
+    facilityId: stop.facilityId,
+    facilityName: stop.facilityName,
+    apptStart: stop.apptStart,
+    timezone: stop.timezone,
+    arrivedAt: stop.arrivedAt,
+    departedAt: stop.departedAt,
+    arrivedWall: stop.arrivedAt === null ? '' : wallClockOf(stop.arrivedAt, stop.timezone) ?? '',
+    departedWall:
+      stop.departedAt === null ? '' : wallClockOf(stop.departedAt, stop.timezone) ?? '',
+    // "Now" at the dock, not wherever the dispatcher is sitting.
+    nowWall: wallClockOf(new Date().toISOString(), stop.timezone) ?? '',
+    reference: stop.reference,
+    notes: stop.notes,
+    state: stopState(stop, stops),
+    label: `${stop.type === 'pickup' ? 'Pickup' : 'Delivery'} · ${when(stop.apptStart, stop.timezone)}`,
+    detail: stopDetail(stop),
+  }));
 
   const step = nextStep(load.status);
   const stepLabel = nextStepLabel(load.status);
@@ -144,23 +172,15 @@ export default async function LoadPage({
           <MainColumn>
             <Panel label="Stops">
               <PanelHeader title="Stops" count={stops.length} />
-              {stops.length === 0 ? (
-                <EmptyState
-                  title="No stops yet"
-                  hint="A load needs a pickup and a delivery before it can be booked."
-                />
-              ) : (
-                stops.map((stop) => (
-                  <StopItem
-                    key={stop.id}
-                    number={stop.seq}
-                    state={stopState(stop, stops)}
-                    label={`${stop.type === 'pickup' ? 'Pickup' : 'Delivery'} · ${when(stop.apptStart, stop.timezone)}`}
-                    title={stop.facilityName ?? 'Facility not chosen'}
-                    detail={stopDetail(stop)}
-                  />
-                ))
-              )}
+              <Stops
+                loadId={load.id}
+                stops={stopViews}
+                facilities={facilities.map((facility) => ({
+                  id: facility.id,
+                  name: facility.name,
+                }))}
+                canEdit={canEdit}
+              />
             </Panel>
 
             <Panel label="Money">
@@ -173,7 +193,7 @@ export default async function LoadPage({
                     .map((charge) => (
                       <AmountRow
                         key={charge.id}
-                        label={charge.description ?? charge.kind.replace(/_/g, ' ')}
+                        label={charge.description ?? chargeKindLabel(charge.kind)}
                         cents={charge.amountCents}
                       />
                     ))}

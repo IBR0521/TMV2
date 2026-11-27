@@ -109,16 +109,23 @@ export const assignLoad = action(
 // ---------------------------------------------------------------------------
 // Stops and charges
 // ---------------------------------------------------------------------------
+/**
+ * A wall-clock time, passed through untouched.
+ *
+ * It means that time at the dock, and only the service knows which dock, so
+ * converting it here would be guessing — which is exactly how an 08:00 Memphis
+ * pickup once became 21:00 the day before.
+ */
 const when = z
   .string()
   .trim()
   .optional()
   .default('')
   .refine(
-    (raw) => raw === '' || !Number.isNaN(Date.parse(raw)),
+    (raw) => raw === '' || /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(raw),
     'Enter the appointment as a date and time.',
   )
-  .transform((raw) => (raw === '' ? null : new Date(raw).toISOString()));
+  .transform((raw) => (raw === '' ? null : raw));
 
 export const saveStop = action(
   z.object({
@@ -167,11 +174,14 @@ export const markStopTime = action(
     stopId: z.uuid(),
     loadId: z.uuid(),
     field: z.enum(['arrived_at', 'departed_at']),
+    // Also a wall-clock time at the dock, for the same reason.
     at: z
       .string()
       .trim()
-      .refine((raw) => !Number.isNaN(Date.parse(raw)), 'Enter a date and time.')
-      .transform((raw) => new Date(raw).toISOString()),
+      .refine(
+        (raw) => /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(raw),
+        'Enter a date and time.',
+      ),
   }),
   DISPATCH,
   async (ctx, input) => {

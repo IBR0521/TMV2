@@ -8,6 +8,7 @@ import {
   rateCents,
   type ProfitEstimate,
 } from '@/domain/load';
+import { instantFromWallClock } from '@/domain/time';
 import type { Ctx } from '../context';
 import { fail } from '../db/errors';
 import { ActionError } from '../errors';
@@ -516,14 +517,24 @@ export async function saveStop(ctx: Ctx, input: StopInput): Promise<string> {
     timezone = data.timezone;
   }
 
+  // The appointment is the time at this dock, so it is read in this dock's
+  // zone — not the browser's and not the server's.
+  const apptStart =
+    input.apptStart === null ? null : instantFromWallClock(input.apptStart, timezone);
+  const apptEnd = input.apptEnd === null ? null : instantFromWallClock(input.apptEnd, timezone);
+
+  if (input.apptStart !== null && apptStart === null) {
+    throw new ActionError('That appointment time could not be read.');
+  }
+
   const row = {
     company_id: ctx.companyId,
     load_id: input.loadId,
     seq: input.seq,
     type: input.type,
     facility_id: input.facilityId,
-    appt_start: input.apptStart,
-    appt_end: input.apptEnd,
+    appt_start: apptStart,
+    appt_end: apptEnd,
     timezone,
     reference: input.reference,
     notes: input.notes,
@@ -566,11 +577,26 @@ export async function markStopTime(
   ctx: Ctx,
   stopId: string,
   field: 'arrived_at' | 'departed_at',
+  /** A wall-clock time at the dock, read in the stop's own zone. */
   at: string,
 ): Promise<void> {
+  const { data: stop, error: stopError } = await ctx.db
+    .from('load_stops')
+    .select('timezone')
+    .eq('company_id', ctx.companyId)
+    .eq('id', stopId)
+    .maybeSingle();
+
+  if (stopError) fail(stopError, 'That stop could not be read.');
+  if (stop === null) throw new ActionError('That stop no longer exists.');
+
+  const instant = instantFromWallClock(at, stop.timezone);
+  if (instant === null) throw new ActionError('That time could not be read.');
+
   // Written out rather than computed: a computed key types as "any column",
   // which would let a typo through to the database.
-  const patch = field === 'arrived_at' ? { arrived_at: at } : { departed_at: at };
+  const patch =
+    field === 'arrived_at' ? { arrived_at: instant } : { departed_at: instant };
 
   const { data, error } = await ctx.db
     .from('load_stops')
@@ -587,7 +613,7 @@ export async function markStopTime(
     action: `stop.${field === 'arrived_at' ? 'arrived' : 'departed'}`,
     subjectType: 'load_stop',
     subjectId: stopId,
-    after: { [field]: at },
+    after: { [field]: instant },
   });
 }
 
